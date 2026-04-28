@@ -2,20 +2,10 @@ import re
 import PyPDF2
 import docx
 from typing import Dict, List
-import spacy
 from collections import Counter
 
 class ResumeAnalyzer:
     def __init__(self):
-        # Load spaCy model for NLP
-        try:
-            self.nlp = spacy.load('en_core_web_sm')
-        except:
-            print("Downloading spaCy model...")
-            import subprocess
-            subprocess.run(['python', '-m', 'spacy', 'download', 'en_core_web_sm'])
-            self.nlp = spacy.load('en_core_web_sm')
-        
         # Common technical skills database
         self.skill_keywords = {
             'programming': ['python', 'java', 'javascript', 'c++', 'c#', 'ruby', 'php', 'swift', 'kotlin', 'go', 'rust', 'typescript'],
