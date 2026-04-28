@@ -2,17 +2,74 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
-from resume_analyzer import ResumeAnalyzer
-from job_matcher import JobMatcher
+import re
+from typing import Dict, List
 
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-# Initialize services
-resume_analyzer = ResumeAnalyzer()
-job_matcher = JobMatcher()
+class SimpleResumeAnalyzer:
+    def __init__(self):
+        # Basic skill keywords
+        self.skills = [
+            'python', 'java', 'javascript', 'react', 'node.js', 'html', 'css',
+            'sql', 'mongodb', 'aws', 'docker', 'git', 'machine learning',
+            'data analysis', 'flask', 'django', 'express', 'angular', 'vue'
+        ]
+    
+    def extract_skills(self, text: str) -> List[str]:
+        """Extract skills from text"""
+        text_lower = text.lower()
+        found_skills = []
+        for skill in self.skills:
+            if skill in text_lower:
+                found_skills.append(skill.title())
+        return list(set(found_skills))
+    
+    def calculate_ats_score(self, text: str) -> int:
+        """Calculate basic ATS score"""
+        score = 0
+        text_lower = text.lower()
+        
+        # Check for sections
+        sections = ['experience', 'education', 'skills', 'projects']
+        for section in sections:
+            if section in text_lower:
+                score += 20
+        
+        # Check for contact info
+        if '@' in text and '.' in text:  # Basic email check
+            score += 10
+        
+        # Check for skills
+        skills = self.extract_skills(text)
+        if len(skills) >= 5:
+            score += 10
+        
+        return min(score, 100)
+    
+    def analyze_text(self, text: str) -> Dict:
+        """Analyze resume text"""
+        skills = self.extract_skills(text)
+        ats_score = self.calculate_ats_score(text)
+        
+        return {
+            'atsScore': ats_score,
+            'skills': skills,
+            'skillCount': len(skills),
+            'wordCount': len(text.split()),
+            'recommendations': [
+                'Add more technical skills to your resume',
+                'Include quantified achievements',
+                'Add a projects section',
+                'Use action verbs in descriptions'
+            ][:3]
+        }
+
+# Initialize analyzer
+analyzer = SimpleResumeAnalyzer()
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -23,26 +80,15 @@ def health_check():
 
 @app.route('/api/ml/resume/analyze', methods=['POST'])
 def analyze_resume():
-    """
-    Analyze resume and return ATS score, extracted skills, and recommendations
-    """
+    """Analyze resume text"""
     try:
-        if 'file' not in request.files:
-            return jsonify({'error': 'No file provided'}), 400
+        data = request.get_json()
+        text = data.get('text', '')
         
-        file = request.files['file']
-        if file.filename == '':
-            return jsonify({'error': 'No file selected'}), 400
+        if not text:
+            return jsonify({'error': 'No text provided'}), 400
         
-        # Save file temporarily
-        temp_path = os.path.join('/tmp', file.filename)
-        file.save(temp_path)
-        
-        # Analyze resume
-        analysis = resume_analyzer.analyze(temp_path)
-        
-        # Clean up
-        os.remove(temp_path)
+        analysis = analyzer.analyze_text(text)
         
         return jsonify({
             'success': True,
@@ -57,9 +103,7 @@ def analyze_resume():
 
 @app.route('/api/ml/resume/extract-skills', methods=['POST'])
 def extract_skills():
-    """
-    Extract skills from resume text
-    """
+    """Extract skills from resume text"""
     try:
         data = request.get_json()
         text = data.get('text', '')
@@ -67,7 +111,7 @@ def extract_skills():
         if not text:
             return jsonify({'error': 'No text provided'}), 400
         
-        skills = resume_analyzer.extract_skills(text)
+        skills = analyzer.extract_skills(text)
         
         return jsonify({
             'success': True,
@@ -82,18 +126,24 @@ def extract_skills():
 
 @app.route('/api/ml/jobs/match', methods=['POST'])
 def match_jobs():
-    """
-    Match user skills with job requirements and return match scores
-    """
+    """Match user skills with job requirements"""
     try:
         data = request.get_json()
         user_skills = data.get('userSkills', [])
         jobs = data.get('jobs', [])
         
-        if not user_skills or not jobs:
-            return jsonify({'error': 'Missing required data'}), 400
-        
-        matches = job_matcher.calculate_matches(user_skills, jobs)
+        # Simple matching logic
+        matches = []
+        for job in jobs:
+            job_skills = job.get('requiredSkills', [])
+            match_count = len(set(user_skills) & set(job_skills))
+            match_percentage = (match_count / len(job_skills)) * 100 if job_skills else 0
+            
+            matches.append({
+                'jobId': job.get('_id'),
+                'matchPercentage': round(match_percentage, 1),
+                'matchedSkills': list(set(user_skills) & set(job_skills))
+            })
         
         return jsonify({
             'success': True,
@@ -106,54 +156,6 @@ def match_jobs():
             'error': str(e)
         }), 500
 
-@app.route('/api/ml/jobs/recommend', methods=['POST'])
-def recommend_jobs():
-    """
-    Recommend jobs based on user profile and learning history
-    """
-    try:
-        data = request.get_json()
-        user_profile = data.get('userProfile', {})
-        available_jobs = data.get('jobs', [])
-        
-        recommendations = job_matcher.recommend_jobs(user_profile, available_jobs)
-        
-        return jsonify({
-            'success': True,
-            'recommendations': recommendations
-        })
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-@app.route('/api/ml/assessment/generate', methods=['POST'])
-def generate_assessment():
-    """
-    Generate AI-powered assessment questions based on course content
-    """
-    try:
-        data = request.get_json()
-        topic = data.get('topic', '')
-        difficulty = data.get('difficulty', 'medium')
-        num_questions = data.get('numQuestions', 10)
-        
-        # TODO: Implement AI question generation
-        questions = []
-        
-        return jsonify({
-            'success': True,
-            'questions': questions
-        })
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
 if __name__ == '__main__':
-    port = int(os.getenv('ML_PORT', 5001))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    port = int(os.getenv('PORT', 5001))
+    app.run(host='0.0.0.0', port=port, debug=False)
