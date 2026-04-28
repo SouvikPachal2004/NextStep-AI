@@ -40,13 +40,22 @@ app.use(cookieParser());
 // Static files for uploads
 app.use('/uploads', express.static('uploads'));
 
-// Database Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/nextstep-ai', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('✅ MongoDB Connected'))
-.catch(err => console.error('❌ MongoDB Connection Error:', err));
+// Database Connection (Non-blocking)
+if (process.env.MONGODB_URI) {
+  mongoose.connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+    socketTimeoutMS: 45000,
+  })
+  .then(() => console.log('✅ MongoDB Connected'))
+  .catch(err => {
+    console.error('❌ MongoDB Connection Error:', err.message);
+    console.log('⚠️ Server will continue without database');
+  });
+} else {
+  console.log('⚠️ No MongoDB URI provided, running without database');
+}
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
