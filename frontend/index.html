@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NextStep AI – Your Career Journey Starts Here</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+<link rel="stylesheet" href="css/variables.css"/>
+<link rel="stylesheet" href="css/global.css"/>
+<link rel="stylesheet" href="css/index.css"/>
+<link rel="stylesheet" href="css/navbar.css"/>
+<link rel="stylesheet" href="css/analytics.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<script>
+  (function(){
+    const t = localStorage.getItem('nextstep-theme') || 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
+</head>
+<body>
+
+<!-- Page Loader -->
+<div class="page-loader" id="pageLoader">
+  <div class="loader-inner">
+    <div class="loader-logo-wrap">
+      <div class="loader-logo-icon">N</div>
+      <div class="loader-ring"></div>
+    </div>
+    <div class="loader-text">NextStep AI</div>
+    <div class="loader-sub">Loading Your Future</div>
+    <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+  </div>
+</div>
+
+<!-- Navigation -->
+<nav class="navbar" id="navbar">
+  <div class="container">
+    <div class="navbar-content">
+      <a href="index.html" class="navbar-brand">
+        <div class="navbar-brand-icon">N</div>
+        <span class="navbar-brand-name">NextStep <span>AI</span></span>
+      </a>
+      
+      <div class="navbar-menu" id="navbarMenu">
+        <a href="#home" class="navbar-link active">Home</a>
+        <a href="#features" class="navbar-link">Features</a>
+        <a href="#courses" class="navbar-link">Courses</a>
+        <a href="#how-it-works" class="navbar-link">How It Works</a>
+        <a href="#testimonials" class="navbar-link">Testimonials</a>
+      </div>
+
+      <div class="navbar-actions">
+        <button class="btn-icon" id="themeToggle" title="Toggle Theme">
+          <i class="fas fa-moon"></i>
+        </button>
+        <a href="pages/login.html" class="btn btn-outline btn-sm">Login</a>
+        <a href="pages/signup.html" class="btn btn-primary btn-sm">Get Started</a>
+        <button class="navbar-toggle" id="navbarToggle">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero" id="home">
+  <div class="hero-particles" id="heroParticles"></div>
+  <div class="hero-blob hero-blob-1"></div>
+  <div class="hero-blob hero-blob-2"></div>
+  <div class="hero-blob hero-blob-3"></div>
+  
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-left">
+        <div class="hero-badge">
+          <div class="hero-badge-dot"></div>
+          <span>AI-Powered Learning Platform</span>
+        </div>
+        <h1 class="hero-title">
+          Transform Your Career with <span class="highlight">NextStep AI</span>
+        </h1>
+        <p class="hero-subtitle">
+          Master new skills, get AI-powered assessments, analyze your resume, and land your dream job—all in one intelligent platform.
+        </p>
+        <div class="hero-actions">
+          <a href="pages/signup.html" class="btn btn-primary btn-lg">
+            <i class="fas fa-rocket"></i> Start Learning Free
+          </a>
+          <a href="#how-it-works" class="btn btn-ghost btn-lg">
+            <i class="fas fa-play-circle"></i> See How It Works
+          </a>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat-item">
+            <div class="hero-stat-value">50K+</div>
+            <div class="hero-stat-label">Active Students</div>
+          </div>
+          <div class="hero-stat-divider"></div>
+          <div class="hero-stat-item">
+            <div class="hero-stat-value">200+</div>
+            <div class="hero-stat-label">Free Courses</div>
+          </div>
+          <div class="hero-stat-divider"></div>
+          <div class="hero-stat-item">
+            <div class="hero-stat-value">1200+</div>
+            <div class="hero-stat-label">Job Partners</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="hero-dashboard-card">
+
+          <!-- Header -->
+          <div class="hdc-header">
+            <div class="hdc-header-left">
+              <div class="hdc-live-dot"></div>
+              <span class="hdc-title">Platform Analytics</span>
+            </div>
+            <div class="hdc-badge">Live</div>
+          </div>
+          <div style="text-align:center;font-size:0.7rem;color:rgba(255,255,255,0.5);margin-top:-8px;margin-bottom:8px;" id="analytics-timestamp">
+            Real-time data
+          </div>
+
+          <!-- Top 4 KPI tiles -->
+          <div class="hdc-kpi-grid">
+            <div class="hdc-kpi" id="kpi-users">
+              <div class="hdc-kpi-icon" style="background:rgba(108,60,225,0.18)">
+                <i class="fas fa-users" style="color:#8B5CF6"></i>
+              </div>
+              <div class="hdc-kpi-body">
+                <div class="hdc-kpi-value">50K+</div>
+                <div class="hdc-kpi-label">Active Learners</div>
+              </div>
+              <div class="hdc-kpi-trend up"><i class="fas fa-arrow-up"></i> 12%</div>
+            </div>
+            <div class="hdc-kpi" id="kpi-courses">
+              <div class="hdc-kpi-icon" style="background:rgba(6,182,212,0.18)">
+                <i class="fas fa-book-open" style="color:#06B6D4"></i>
+              </div>
+              <div class="hdc-kpi-body">
+                <div class="hdc-kpi-value">200+</div>
+                <div class="hdc-kpi-label">Courses</div>
+              </div>
+              <div class="hdc-kpi-trend up"><i class="fas fa-arrow-up"></i> 8%</div>
+            </div>
+            <div class="hdc-kpi" id="kpi-certificates">
+              <div class="hdc-kpi-icon" style="background:rgba(16,185,129,0.18)">
+                <i class="fas fa-certificate" style="color:#10B981"></i>
+              </div>
+              <div class="hdc-kpi-body">
+                <div class="hdc-kpi-value">18K</div>
+                <div class="hdc-kpi-label">Certificates</div>
+              </div>
+              <div class="hdc-kpi-trend up"><i class="fas fa-arrow-up"></i> 23%</div>
+            </div>
+            <div class="hdc-kpi" id="kpi-jobs">
+              <div class="hdc-kpi-icon" style="background:rgba(249,115,22,0.18)">
+                <i class="fas fa-briefcase" style="color:#F97316"></i>
+              </div>
+              <div class="hdc-kpi-body">
+                <div class="hdc-kpi-value">1.2K</div>
+                <div class="hdc-kpi-label">Job Partners</div>
+              </div>
+              <div class="hdc-kpi-trend up"><i class="fas fa-arrow-up"></i> 5%</div>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="hdc-divider"></div>
+
+          <!-- Top courses by enrollment -->
+          <div class="hdc-section-label">
+            <i class="fas fa-fire" style="color:#F97316"></i> Top Enrolled Courses
+          </div>
+          <div class="hdc-courses">
+            <div class="hdc-course-row">
+              <div class="hdc-course-rank">01</div>
+              <div class="hdc-course-info">
+                <div class="hdc-course-name">Python Programming</div>
+                <div class="hdc-course-bar-wrap">
+                  <div class="hdc-course-bar" style="width:88%;background:linear-gradient(90deg,#6C3CE1,#8B5CF6)"></div>
+                </div>
+              </div>
+              <div class="hdc-course-pct" style="color:#8B5CF6">15K</div>
+            </div>
+            <div class="hdc-course-row">
+              <div class="hdc-course-rank">02</div>
+              <div class="hdc-course-info">
+                <div class="hdc-course-name">Machine Learning</div>
+                <div class="hdc-course-bar-wrap">
+                  <div class="hdc-course-bar" style="width:72%;background:linear-gradient(90deg,#06B6D4,#0891B2)"></div>
+                </div>
+              </div>
+              <div class="hdc-course-pct" style="color:#06B6D4">12K</div>
+            </div>
+            <div class="hdc-course-row">
+              <div class="hdc-course-rank">03</div>
+              <div class="hdc-course-info">
+                <div class="hdc-course-name">Data Science</div>
+                <div class="hdc-course-bar-wrap">
+                  <div class="hdc-course-bar" style="width:60%;background:linear-gradient(90deg,#10B981,#059669)"></div>
+                </div>
+              </div>
+              <div class="hdc-course-pct" style="color:#10B981">9.8K</div>
+            </div>
+          </div>
+
+          <!-- Bottom row: placement & satisfaction -->
+          <div class="hdc-footer-row">
+            <div class="hdc-footer-stat">
+              <div class="hdc-footer-circle" style="--pct:92%;--clr:#8B5CF6">
+                <svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="url(#g1)" stroke-width="3" stroke-dasharray="92 8" stroke-linecap="round" transform="rotate(-90 18 18)"/><defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#6C3CE1"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient></defs></svg>
+                <span>92%</span>
+              </div>
+              <div class="hdc-footer-label">Placement Rate</div>
+            </div>
+            <div class="hdc-footer-divider"></div>
+            <div class="hdc-footer-stat">
+              <div class="hdc-footer-circle" style="--pct:96%;--clr:#06B6D4">
+                <svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="url(#g2)" stroke-width="3" stroke-dasharray="96 4" stroke-linecap="round" transform="rotate(-90 18 18)"/><defs><linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#06B6D4"/><stop offset="100%" stop-color="#0891B2"/></linearGradient></defs></svg>
+                <span>96%</span>
+              </div>
+              <div class="hdc-footer-label">Satisfaction</div>
+            </div>
+            <div class="hdc-footer-divider"></div>
+            <div class="hdc-footer-stat">
+              <div class="hdc-footer-circle" style="--pct:85%;--clr:#10B981">
+                <svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="url(#g3)" stroke-width="3" stroke-dasharray="85 15" stroke-linecap="round" transform="rotate(-90 18 18)"/><defs><linearGradient id="g3" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#10B981"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs></svg>
+                <span>85%</span>
+              </div>
+              <div class="hdc-footer-label">Avg Score</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Partners Marquee -->
+<section class="marquee-section">
+  <div class="marquee-track">
+    <div class="marquee-item"><i class="fab fa-google"></i> Google</div>
+    <div class="marquee-item"><i class="fab fa-microsoft"></i> Microsoft</div>
+    <div class="marquee-item"><i class="fab fa-amazon"></i> Amazon</div>
+    <div class="marquee-item"><i class="fab fa-meta"></i> Meta</div>
+    <div class="marquee-item"><i class="fab fa-apple"></i> Apple</div>
+    <div class="marquee-item"><i class="fab fa-netflix"></i> Netflix</div>
+    <div class="marquee-item"><i class="fab fa-spotify"></i> Spotify</div>
+    <div class="marquee-item"><i class="fab fa-google"></i> Google</div>
+    <div class="marquee-item"><i class="fab fa-microsoft"></i> Microsoft</div>
+    <div class="marquee-item"><i class="fab fa-amazon"></i> Amazon</div>
+    <div class="marquee-item"><i class="fab fa-meta"></i> Meta</div>
+    <div class="marquee-item"><i class="fab fa-apple"></i> Apple</div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section class="section" id="features">
+  <div class="container">
+    <div class="section-header text-center">
+      <div class="section-label"><i class="fas fa-star"></i> Features</div>
+      <h2 class="section-title">Everything You Need to Succeed</h2>
+      <p class="section-subtitle" style="margin-left:auto;margin-right:auto">
+        From learning to landing your dream job, NextStep AI provides intelligent tools at every step of your career journey.
+      </p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(108,60,225,0.1);color:#6C3CE1">
+          <i class="fas fa-graduation-cap"></i>
+        </div>
+        <h3 class="feature-title">Online Learning</h3>
+        <p class="feature-desc">Access 200+ courses in programming, data science, AI, and more. Learn at your own pace with video lectures and hands-on projects.</p>
+        <a href="#courses" class="feature-link">Explore Courses <i class="fas fa-arrow-right"></i></a>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(6,182,212,0.1);color:#06B6D4">
+          <i class="fas fa-brain"></i>
+        </div>
+        <h3 class="feature-title">AI Assessment</h3>
+        <p class="feature-desc">Take intelligent assessments that adapt to your skill level. Get instant feedback and personalized recommendations.</p>
+        <a href="#" class="feature-link">Learn More <i class="fas fa-arrow-right"></i></a>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(16,185,129,0.1);color:#10B981">
+          <i class="fas fa-certificate"></i>
+        </div>
+        <h3 class="feature-title">Certification</h3>
+        <p class="feature-desc">Earn industry-recognized certificates after passing assessments. Boost your resume and stand out to employers.</p>
+        <a href="#" class="feature-link">View Certificates <i class="fas fa-arrow-right"></i></a>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(249,115,22,0.1);color:#F97316">
+          <i class="fas fa-file-alt"></i>
+        </div>
+        <h3 class="feature-title">Resume Analyzer</h3>
+        <p class="feature-desc">Upload your resume and get AI-powered analysis. Extract skills, identify gaps, and get improvement suggestions.</p>
+        <a href="#" class="feature-link">Analyze Resume <i class="fas fa-arrow-right"></i></a>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(236,72,153,0.1);color:#EC4899">
+          <i class="fas fa-briefcase"></i>
+        </div>
+        <h3 class="feature-title">Job Recommendations</h3>
+        <p class="feature-desc">Get personalized job matches based on your skills, courses, and assessment scores. Apply directly through the platform.</p>
+        <a href="#" class="feature-link">Find Jobs <i class="fas fa-arrow-right"></i></a>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(139,92,246,0.1);color:#8B5CF6">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <h3 class="feature-title">Skill Gap Analysis</h3>
+        <p class="feature-desc">Compare your skills with job requirements. Identify missing skills and get course recommendations to fill the gaps.</p>
+        <a href="#" class="feature-link">Check Skills <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="section how-it-works" id="how-it-works">
+  <div class="container">
+    <div class="section-header text-center">
+      <div class="section-label"><i class="fas fa-route"></i> Process</div>
+      <h2 class="section-title">How NextStep AI Works</h2>
+      <p class="section-subtitle" style="margin-left:auto;margin-right:auto">
+        Follow our proven 4-step process from learning to employment
+      </p>
+    </div>
+
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <h3 class="step-title">Learn & Enroll</h3>
+        <p class="step-desc">Choose from 200+ courses and start learning. Track your progress with our interactive dashboard.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <h3 class="step-title">Take Assessment</h3>
+        <p class="step-desc">Complete AI-powered assessments to prove your skills. Pass to unlock job application features.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <h3 class="step-title">Analyze Resume</h3>
+        <p class="step-desc">Upload your resume for AI analysis. Get skill extraction and improvement recommendations.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-number">4</div>
+        <h3 class="step-title">Apply for Jobs</h3>
+        <p class="step-desc">Get matched with suitable jobs based on your skills and performance. Apply with confidence.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Courses Section -->
+<section class="section" id="courses">
+  <div class="container">
+    <div class="section-header text-center">
+      <div class="section-label"><i class="fas fa-book"></i> Courses</div>
+      <h2 class="section-title">Popular Courses</h2>
+      <p class="section-subtitle" style="margin-left:auto;margin-right:auto">
+        Start learning with our most popular courses, completely free
+      </p>
+    </div>
+
+    <div class="courses-grid">
+      <div class="course-card">
+        <div class="course-thumb">
+          <div class="course-category">Programming</div>
+          <div class="course-thumb-overlay">
+            <div class="course-play-btn"><i class="fas fa-play"></i></div>
+          </div>
+        </div>
+        <div class="course-body">
+          <h3 class="course-title">Python Programming Fundamentals</h3>
+          <div class="course-meta">
+            <div class="course-meta-item"><i class="fas fa-video"></i> 45 Videos</div>
+            <div class="course-meta-item"><i class="fas fa-clock"></i> 12 Hours</div>
+            <div class="course-meta-item"><i class="fas fa-users"></i> 15K Students</div>
+          </div>
+          <div class="course-footer">
+            <div class="course-free"><i class="fas fa-check-circle"></i> Free</div>
+            <a href="#" class="btn btn-primary btn-sm course-enroll-btn">Enroll Now</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="course-card">
+        <div class="course-thumb">
+          <div class="course-category">Data Science</div>
+          <div class="course-thumb-overlay">
+            <div class="course-play-btn"><i class="fas fa-play"></i></div>
+          </div>
+        </div>
+        <div class="course-body">
+          <h3 class="course-title">Machine Learning & Applications</h3>
+          <div class="course-meta">
+            <div class="course-meta-item"><i class="fas fa-video"></i> 60 Videos</div>
+            <div class="course-meta-item"><i class="fas fa-clock"></i> 18 Hours</div>
+            <div class="course-meta-item"><i class="fas fa-users"></i> 12K Students</div>
+          </div>
+          <div class="course-footer">
+            <div class="course-free"><i class="fas fa-check-circle"></i> Free</div>
+            <a href="#" class="btn btn-primary btn-sm course-enroll-btn">Enroll Now</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="course-card">
+        <div class="course-thumb">
+          <div class="course-category">Web Development</div>
+          <div class="course-thumb-overlay">
+            <div class="course-play-btn"><i class="fas fa-play"></i></div>
+          </div>
+        </div>
+        <div class="course-body">
+          <h3 class="course-title">Full Stack Web Development</h3>
+          <div class="course-meta">
+            <div class="course-meta-item"><i class="fas fa-video"></i> 80 Videos</div>
+            <div class="course-meta-item"><i class="fas fa-clock"></i> 25 Hours</div>
+            <div class="course-meta-item"><i class="fas fa-users"></i> 20K Students</div>
+          </div>
+          <div class="course-footer">
+            <div class="course-free"><i class="fas fa-check-circle"></i> Free</div>
+            <a href="#" class="btn btn-primary btn-sm course-enroll-btn">Enroll Now</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section class="section testimonials" id="testimonials">
+  <div class="container">
+    <div class="section-header text-center">
+      <div class="section-label"><i class="fas fa-quote-left"></i> Testimonials</div>
+      <h2 class="section-title">What Our Students Say</h2>
+      <p class="section-subtitle" style="margin-left:auto;margin-right:auto">
+        Join thousands of successful students who transformed their careers with NextStep AI
+      </p>
+    </div>
+
+    <div class="testimonials-grid">
+      <div class="testimonial-card">
+        <div class="testimonial-stars">
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+        </div>
+        <p class="testimonial-text">
+          "NextStep AI helped me transition from a non-tech background to landing a software developer role at a top company. The AI assessments and resume analyzer were game-changers!"
+        </p>
+        <div class="testimonial-author">
+          <div class="avatar avatar-lg" style="background:linear-gradient(135deg,#6C3CE1,#8B5CF6)">P</div>
+          <div class="testimonial-author-info">
+            <div class="name">Priya Sharma</div>
+            <div class="role">Software Developer at TCS</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-card">
+        <div class="testimonial-stars">
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+        </div>
+        <p class="testimonial-text">
+          "The skill gap analysis feature showed me exactly what I needed to learn. Within 3 months, I completed the courses and got hired as a Data Analyst. Highly recommended!"
+        </p>
+        <div class="testimonial-author">
+          <div class="avatar avatar-lg" style="background:linear-gradient(135deg,#06B6D4,#0891B2)">R</div>
+          <div class="testimonial-author-info">
+            <div class="name">Rahul Verma</div>
+            <div class="role">Data Analyst at Infosys</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-card">
+        <div class="testimonial-stars">
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star"></i>
+        </div>
+        <p class="testimonial-text">
+          "Best learning platform I've used! The job recommendations were spot-on, and I got multiple interview calls. The certificates really helped boost my profile."
+        </p>
+        <div class="testimonial-author">
+          <div class="avatar avatar-lg" style="background:linear-gradient(135deg,#F97316,#EA580C)">A</div>
+          <div class="testimonial-author-info">
+            <div class="name">Ananya Patel</div>
+            <div class="role">ML Engineer at Wipro</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+  <div class="container">
+    <div class="cta-inner">
+      <h2 class="cta-title">Ready to Transform Your Career?</h2>
+      <p class="cta-subtitle">Join 50,000+ students who are already learning and landing their dream jobs with NextStep AI</p>
+      <div class="cta-actions">
+        <a href="pages/signup.html" class="btn btn-white btn-lg">
+          <i class="fas fa-rocket"></i> Get Started Free
+        </a>
+        <a href="pages/login.html" class="btn btn-ghost btn-lg">
+          <i class="fas fa-sign-in-alt"></i> Sign In
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <div class="footer-logo-icon">N</div>
+          <div class="footer-logo-name">NextStep <span>AI</span></div>
+        </div>
+        <p class="footer-desc">
+          Empowering learners worldwide with AI-driven education, assessments, and career guidance. Your journey from learning to employment starts here.
+        </p>
+        <div class="footer-social">
+          <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" class="social-btn"><i class="fab fa-twitter"></i></a>
+          <a href="#" class="social-btn"><i class="fab fa-linkedin-in"></i></a>
+          <a href="#" class="social-btn"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="social-btn"><i class="fab fa-youtube"></i></a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Platform</div>
+        <div class="footer-links">
+          <a href="#" class="footer-link">Courses</a>
+          <a href="#" class="footer-link">Assessments</a>
+          <a href="#" class="footer-link">Certifications</a>
+          <a href="#" class="footer-link">Job Board</a>
+          <a href="#" class="footer-link">Resume Analyzer</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Company</div>
+        <div class="footer-links">
+          <a href="#" class="footer-link">About Us</a>
+          <a href="#" class="footer-link">Careers</a>
+          <a href="#" class="footer-link">Blog</a>
+          <a href="#" class="footer-link">Press</a>
+          <a href="#" class="footer-link">Contact</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Support</div>
+        <div class="footer-links">
+          <a href="#" class="footer-link">Help Center</a>
+          <a href="#" class="footer-link">Terms of Service</a>
+          <a href="#" class="footer-link">Privacy Policy</a>
+          <a href="#" class="footer-link">Cookie Policy</a>
+          <a href="#" class="footer-link">FAQs</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="footer-copy">&copy; 2024 NextStep AI. All rights reserved.</div>
+      <div class="footer-bottom-links">
+        <a href="#" class="footer-bottom-link">Privacy</a>
+        <a href="#" class="footer-bottom-link">Terms</a>
+        <a href="#" class="footer-bottom-link">Cookies</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Scroll to Top -->
+<button class="scroll-top" id="scrollTop">
+  <i class="fas fa-arrow-up"></i>
+</button>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/config.js"></script>
+<script src="js/analytics.js"></script>
+<script src="js/main.js"></script>
+<script>
+// Initialize real-time analytics on homepage
+if (typeof initHomepageAnalytics === 'function') {
+  // Wait for page to load
+  window.addEventListener('load', function() {
+    setTimeout(() => {
+      initHomepageAnalytics();
+      console.log('Real-time analytics initialized');
+    }, 2000); // Start after page loader
+  });
+}
+</script>
+</body>
+</html>

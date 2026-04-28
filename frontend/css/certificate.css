@@ -1,0 +1,515 @@
+/* ===== NEXTSTEP AI – PREMIUM CERTIFICATE STYLES ===== */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* ── Page wrapper ── */
+.certificate-page {
+  min-height: 100vh;
+  background: radial-gradient(ellipse at top, #1a0533 0%, #0d0d1a 60%, #000 100%);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.certificate-header {
+  width: 100%;
+  max-width: 1100px;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.certificate-header .btn {
+  border-color: rgba(255,255,255,0.25);
+  color: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.07);
+  backdrop-filter: blur(8px);
+  transition: all 0.3s;
+}
+.certificate-header .btn:hover {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+.certificate-header .btn-primary {
+  background: linear-gradient(135deg, #c9a227, #f0d060);
+  border-color: transparent;
+  color: #1a0533;
+  font-weight: 700;
+}
+.certificate-header .btn-primary:hover {
+  background: linear-gradient(135deg, #f0d060, #c9a227);
+}
+
+.certificate-actions { display: flex; gap: 1rem; }
+
+/* ── Certificate card ── */
+.certificate-container {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  justify-content: center;
+}
+
+.certificate {
+  position: relative;
+  width: 100%;
+  max-width: 1050px;
+  background: #fff;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(201,162,39,0.4),
+    0 0 0 6px rgba(201,162,39,0.12),
+    0 40px 100px rgba(0,0,0,0.7),
+    0 0 60px rgba(201,162,39,0.15);
+}
+
+/* ── Top banner ── */
+.cert-top-banner {
+  background: linear-gradient(135deg, #1a0533 0%, #2d0a5e 40%, #1a0533 100%);
+  padding: 2rem 3.5rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle star-burst pattern on banner */
+.cert-top-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(201,162,39,0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 50%, rgba(201,162,39,0.08) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.cert-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  position: relative;
+  z-index: 1;
+}
+
+.cert-brand-icon {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #c9a227, #f0d060);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #1a0533;
+  font-family: 'Cinzel', serif;
+  box-shadow: 0 4px 16px rgba(201,162,39,0.4);
+}
+
+.cert-brand-name {
+  font-family: 'Cinzel', serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
+}
+.cert-brand-name span {
+  color: #f0d060;
+}
+
+.cert-banner-badge {
+  position: relative;
+  z-index: 1;
+  text-align: right;
+}
+.cert-banner-badge-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 3px;
+  color: rgba(240,208,96,0.7);
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+.cert-banner-badge-id {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.6);
+  font-weight: 500;
+}
+
+/* ── Gold divider ── */
+.cert-gold-divider {
+  height: 4px;
+  background: linear-gradient(90deg, #7b5a00, #c9a227, #f0d060, #c9a227, #7b5a00);
+}
+
+/* ── Main body ── */
+.cert-body {
+  padding: 3rem 4rem 2.5rem;
+  position: relative;
+  background: #fff;
+}
+
+/* Corner ornaments */
+.cert-body::before,
+.cert-body::after {
+  content: '';
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Cpath d='M0,0 L30,0 L30,3 L3,3 L3,30 L0,30 Z' fill='%23c9a227' opacity='0.5'/%3E%3Cpath d='M0,0 L15,0 L15,1.5 L1.5,1.5 L1.5,15 L0,15 Z' fill='%23c9a227' opacity='0.8'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+.cert-body::before { top: 1.5rem; left: 1.5rem; }
+.cert-body::after  { bottom: 1.5rem; right: 1.5rem; transform: rotate(180deg); }
+
+/* ── Presented to section ── */
+.cert-presented {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.cert-presented-label {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  font-style: italic;
+  color: #888;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* ── Title ── */
+.cert-title {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.cert-title-main {
+  font-family: 'Cinzel', serif;
+  font-size: 2.6rem;
+  font-weight: 900;
+  color: #1a0533;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+.cert-title-sub {
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  font-weight: 400;
+  color: #c9a227;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  margin-top: 0.4rem;
+}
+
+/* ── Ornamental line ── */
+.cert-ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.cert-ornament-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #c9a227, transparent);
+  max-width: 200px;
+}
+.cert-ornament-diamond {
+  width: 10px;
+  height: 10px;
+  background: #c9a227;
+  transform: rotate(45deg);
+  flex-shrink: 0;
+}
+.cert-ornament-diamond-sm {
+  width: 6px;
+  height: 6px;
+  background: rgba(201,162,39,0.5);
+  transform: rotate(45deg);
+  flex-shrink: 0;
+}
+
+/* ── Student name ── */
+.cert-name-wrap {
+  text-align: center;
+  margin: 1.25rem 0;
+  position: relative;
+}
+
+.cert-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 3.4rem;
+  font-weight: 700;
+  font-style: italic;
+  color: #1a0533;
+  line-height: 1.1;
+  position: relative;
+  display: inline-block;
+}
+
+.cert-name::after {
+  content: '';
+  display: block;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #c9a227 30%, #f0d060 50%, #c9a227 70%, transparent);
+  margin-top: 0.4rem;
+}
+
+/* ── Body text ── */
+.cert-body-text {
+  text-align: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.2rem;
+  color: #555;
+  margin: 0.75rem 0;
+  font-style: italic;
+}
+
+/* ── Course name ── */
+.cert-course {
+  text-align: center;
+  margin: 0.75rem 0 1.5rem;
+}
+
+.cert-course-name {
+  font-family: 'Cinzel', serif;
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: #1a0533;
+  letter-spacing: 1px;
+  line-height: 1.3;
+  padding: 0 3rem;
+}
+
+/* ── Details row ── */
+.cert-details {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  margin: 1.5rem 0 2rem;
+  border: 1px solid rgba(201,162,39,0.3);
+  border-radius: 4px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(201,162,39,0.04), rgba(201,162,39,0.08));
+}
+
+.cert-detail-item {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  text-align: center;
+  border-right: 1px solid rgba(201,162,39,0.3);
+}
+.cert-detail-item:last-child { border-right: none; }
+
+.cert-detail-label {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #c9a227;
+  margin-bottom: 0.35rem;
+}
+
+.cert-detail-value {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1a0533;
+}
+
+/* ── Signatures ── */
+.cert-signatures {
+  display: grid;
+  grid-template-columns: 1fr 140px 1fr;
+  gap: 1.5rem;
+  align-items: end;
+  margin-top: 1rem;
+}
+
+.cert-sig-item { text-align: center; }
+
+.cert-sig-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #1a0533 30%, #1a0533 70%, transparent);
+  margin-bottom: 0.5rem;
+}
+
+.cert-sig-name {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1a0533;
+  margin-bottom: 0.15rem;
+}
+
+.cert-sig-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.7rem;
+  color: #888;
+  letter-spacing: 0.5px;
+}
+
+/* ── Seal ── */
+.cert-seal {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cert-seal-circle {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1a0533, #2d0a5e);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow:
+    0 0 0 3px #c9a227,
+    0 0 0 6px rgba(201,162,39,0.2),
+    0 8px 24px rgba(26,5,51,0.4);
+}
+
+.cert-seal-circle::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(201,162,39,0.6);
+}
+
+.cert-seal-inner {
+  text-align: center;
+  color: #f0d060;
+  position: relative;
+  z-index: 1;
+}
+
+.cert-seal-inner i {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.cert-seal-text {
+  font-family: 'Cinzel', serif;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #f0d060;
+}
+
+/* ── Bottom banner ── */
+.cert-bottom-banner {
+  background: linear-gradient(135deg, #1a0533 0%, #2d0a5e 40%, #1a0533 100%);
+  padding: 0.9rem 3.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cert-bottom-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.55);
+}
+
+.cert-bottom-item i { color: #c9a227; font-size: 0.85rem; }
+
+/* ── Watermark ── */
+.cert-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  font-family: 'Cinzel', serif;
+  font-size: 7rem;
+  font-weight: 900;
+  color: rgba(201,162,39,0.04);
+  pointer-events: none;
+  white-space: nowrap;
+  letter-spacing: 0.5rem;
+  z-index: 0;
+}
+
+/* ── Toast ── */
+.toast-container {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  font-size: 0.9rem;
+  color: #1a1a2e;
+  min-width: 280px;
+  animation: slideIn 0.3s ease;
+}
+
+.toast-close { margin-left: auto; cursor: pointer; opacity: 0.5; }
+.toast-close:hover { opacity: 1; }
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .certificate-page { padding: 1rem; }
+  .cert-body { padding: 2rem 1.5rem; }
+  .cert-top-banner, .cert-bottom-banner { padding: 1.25rem 1.5rem; }
+  .cert-title-main { font-size: 1.8rem; letter-spacing: 2px; }
+  .cert-name { font-size: 2.2rem; }
+  .cert-course-name { font-size: 1.2rem; padding: 0 1rem; }
+  .cert-details { flex-direction: column; }
+  .cert-detail-item { border-right: none; border-bottom: 1px solid rgba(201,162,39,0.3); }
+  .cert-detail-item:last-child { border-bottom: none; }
+  .cert-signatures { grid-template-columns: 1fr; gap: 1.5rem; }
+  .cert-seal-circle { width: 90px; height: 90px; }
+  .cert-watermark { font-size: 4rem; }
+}
+
+/* ── Print / PDF ── */
+@media print {
+  .certificate-page { background: white; padding: 0; }
+  .certificate-header { display: none; }
+  .certificate { box-shadow: none; max-width: 100%; }
+}
+
+/* Prevent html2pdf from splitting the certificate across pages */
+.certificate,
+.cert-top-banner,
+.cert-body,
+.cert-bottom-banner,
+.cert-signatures,
+.cert-details {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}

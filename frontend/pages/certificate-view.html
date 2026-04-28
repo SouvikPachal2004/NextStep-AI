@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Certificate – NextStep AI</title>
+<link rel="icon" type="image/svg+xml" href="../favicon.svg"/>
+<link rel="stylesheet" href="../css/variables.css"/>
+<link rel="stylesheet" href="../css/global.css"/>
+<link rel="stylesheet" href="../css/certificate.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="../js/config.js"></script>
+</head>
+<body>
+
+<div class="certificate-page">
+
+  <!-- Top action bar -->
+  <div class="certificate-header">
+    <button class="btn btn-outline" onclick="window.history.back()">
+      <i class="fas fa-arrow-left"></i> Back
+    </button>
+    <div class="certificate-actions">
+      <button class="btn btn-outline" id="downloadPdfBtn">
+        <i class="fas fa-download"></i> Download PDF
+      </button>
+      <button class="btn btn-primary" id="shareBtn">
+        <i class="fas fa-share-alt"></i> Share
+      </button>
+    </div>
+  </div>
+
+  <!-- Certificate card -->
+  <div class="certificate-container">
+    <div class="certificate" id="certificate">
+
+      <!-- ── Top dark banner ── -->
+      <div class="cert-top-banner">
+        <div class="cert-brand">
+          <div class="cert-brand-icon">N</div>
+          <div class="cert-brand-name">NextStep <span>AI</span></div>
+        </div>
+        <div class="cert-banner-badge">
+          <div class="cert-banner-badge-label">Certificate ID</div>
+          <div class="cert-banner-badge-id" id="certificateId">CERT-000000</div>
+        </div>
+      </div>
+
+      <!-- ── Gold divider ── -->
+      <div class="cert-gold-divider"></div>
+
+      <!-- ── Main body ── -->
+      <div class="cert-body">
+
+        <!-- Watermark -->
+        <div class="cert-watermark">NextStep AI</div>
+
+        <!-- Presented to -->
+        <div class="cert-presented">
+          <div class="cert-presented-label">Proudly Presented To</div>
+        </div>
+
+        <!-- Title -->
+        <div class="cert-title">
+          <div class="cert-title-main">Certificate</div>
+          <div class="cert-title-sub">of Completion</div>
+        </div>
+
+        <!-- Ornament -->
+        <div class="cert-ornament">
+          <div class="cert-ornament-line"></div>
+          <div class="cert-ornament-diamond-sm"></div>
+          <div class="cert-ornament-diamond"></div>
+          <div class="cert-ornament-diamond-sm"></div>
+          <div class="cert-ornament-line"></div>
+        </div>
+
+        <!-- Student name -->
+        <div class="cert-name-wrap">
+          <div class="cert-name" id="studentName">Student Name</div>
+        </div>
+
+        <!-- Body text -->
+        <div class="cert-body-text">
+          has successfully completed the course
+        </div>
+
+        <!-- Course name -->
+        <div class="cert-course">
+          <div class="cert-course-name" id="courseName">Course Name</div>
+        </div>
+
+        <!-- Ornament -->
+        <div class="cert-ornament">
+          <div class="cert-ornament-line"></div>
+          <div class="cert-ornament-diamond-sm"></div>
+          <div class="cert-ornament-diamond"></div>
+          <div class="cert-ornament-diamond-sm"></div>
+          <div class="cert-ornament-line"></div>
+        </div>
+
+        <!-- Details row -->
+        <div class="cert-details">
+          <div class="cert-detail-item">
+            <div class="cert-detail-label">Completion Date</div>
+            <div class="cert-detail-value" id="completionDate">—</div>
+          </div>
+          <div class="cert-detail-item">
+            <div class="cert-detail-label">Category</div>
+            <div class="cert-detail-value" id="courseCategory">—</div>
+          </div>
+          <div class="cert-detail-item">
+            <div class="cert-detail-label">Issued By</div>
+            <div class="cert-detail-value">NextStep AI</div>
+          </div>
+        </div>
+
+        <!-- Signatures -->
+        <div class="cert-signatures">
+          <div class="cert-sig-item">
+            <div class="cert-sig-line"></div>
+            <div class="cert-sig-name">Dr. Sarah Johnson</div>
+            <div class="cert-sig-title">Chief Learning Officer</div>
+          </div>
+
+          <div class="cert-seal">
+            <div class="cert-seal-circle">
+              <div class="cert-seal-inner">
+                <i class="fas fa-certificate"></i>
+                <div class="cert-seal-text">VERIFIED</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="cert-sig-item">
+            <div class="cert-sig-line"></div>
+            <div class="cert-sig-name">Michael Chen</div>
+            <div class="cert-sig-title">CEO, NextStep AI</div>
+          </div>
+        </div>
+
+      </div><!-- /cert-body -->
+
+      <!-- ── Gold divider ── -->
+      <div class="cert-gold-divider"></div>
+
+      <!-- ── Bottom dark banner ── -->
+      <div class="cert-bottom-banner">
+        <div class="cert-bottom-item">
+          <i class="fas fa-globe"></i>
+          <span>www.nextstep-ai.com</span>
+        </div>
+        <div class="cert-bottom-item">
+          <i class="fas fa-shield-alt"></i>
+          <span>Digitally Verified Certificate</span>
+        </div>
+        <div class="cert-bottom-item">
+          <i class="fas fa-lock"></i>
+          <span>Tamper-Proof &amp; Authentic</span>
+        </div>
+      </div>
+
+    </div><!-- /certificate -->
+  </div><!-- /certificate-container -->
+
+</div><!-- /certificate-page -->
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="../js/certificate.js"></script>
+</body>
+</html>

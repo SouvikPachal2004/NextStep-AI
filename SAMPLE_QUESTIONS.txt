@@ -1,0 +1,141 @@
+SAMPLE ASSESSMENT QUESTIONS - JAVASCRIPT FUNDAMENTALS
+
+Q1. What is the correct syntax for creating a function in JavaScript?
+A) function myFunction()
+B) function:myFunction()
+C) create myFunction()
+D) def myFunction()
+Answer: A
+
+Q2. Which method is used to add an element at the end of an array?
+A) push()
+B) pop()
+C) shift()
+D) unshift()
+Answer: A
+
+Q3. What does the 'typeof' operator return for an array?
+A) array
+B) object
+C) list
+D) collection
+Answer: B
+
+Q4. Which symbol is used for single-line comments in JavaScript?
+A) //
+B) /* */
+C) #
+D) --
+Answer: A
+
+Q5. What is the result of: 2 + '2' in JavaScript?
+A) 4
+B) 22
+C) Error
+D) NaN
+Answer: B
+
+Q6. Which method converts a JSON string to a JavaScript object?
+A) JSON.parse()
+B) JSON.stringify()
+C) JSON.convert()
+D) JSON.toObject()
+Answer: A
+
+Q7. What keyword is used to declare a constant in JavaScript?
+A) var
+B) let
+C) const
+D) constant
+Answer: C
+
+Q8. Which operator is used for strict equality comparison?
+A) ==
+B) ===
+C) =
+D) !=
+Answer: B
+
+Q9. What is the correct way to write an arrow function?
+A) => function()
+B) function =>
+C) () => {}
+D) -> {}
+Answer: C
+
+Q10. Which method is used to remove the last element from an array?
+A) pop()
+B) push()
+C) shift()
+D) slice()
+Answer: A
+
+Q11. What does NaN stand for in JavaScript?
+A) Not a Null
+B) Not a Number
+C) Null and None
+D) Number and Null
+Answer: B
+
+Q12. Which loop is guaranteed to execute at least once?
+A) for loop
+B) while loop
+C) do-while loop
+D) forEach loop
+Answer: C
+
+Q13. What is the output of: typeof null?
+A) null
+B) undefined
+C) object
+D) number
+Answer: C
+
+Q14. Which method is used to combine two or more arrays?
+A) concat()
+B) merge()
+C) combine()
+D) join()
+Answer: A
+
+Q15. What keyword is used to exit a loop?
+A) exit
+B) break
+C) stop
+D) return
+Answer: B
+
+Q16. Which method converts a JavaScript object to a JSON string?
+A) JSON.parse()
+B) JSON.stringify()
+C) JSON.convert()
+D) JSON.toString()
+Answer: B
+
+Q17. What is the scope of a variable declared with 'let'?
+A) Global scope
+B) Function scope
+C) Block scope
+D) Module scope
+Answer: C
+
+Q18. Which method is used to find the length of a string?
+A) size()
+B) length()
+C) length
+D) count()
+Answer: C
+
+Q19. What is the result of: Boolean(0)?
+A) true
+B) false
+C) 0
+D) undefined
+Answer: B
+
+Q20. Which method is used to execute a function after a specified delay?
+A) setInterval()
+B) setTimeout()
+C) delay()
+D) wait()
+Answer: B

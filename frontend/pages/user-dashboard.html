@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>My Dashboard – NextStep AI</title>
+<link rel="icon" type="image/svg+xml" href="../favicon.svg"/>
+<link rel="stylesheet" href="../css/variables.css"/>
+<link rel="stylesheet" href="../css/global.css"/>
+<link rel="stylesheet" href="../css/dashboard.css"/>
+<link rel="stylesheet" href="../css/analytics.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="../js/config.js"></script>
+<script>
+(function(){ 
+  const t=localStorage.getItem('nextstep-theme')||'light'; 
+  document.documentElement.setAttribute('data-theme',t);
+  // Check authentication
+  if (!isAuthenticated()) {
+    window.location.href = 'login.html';
+  }
+})();
+</script>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">N</div>
+      <span class="sidebar-brand-name">NextStep <span>AI</span></span>
+    </div>
+    <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">MAIN</div>
+      <a href="#" class="sidebar-link active" data-page="overview"><i class="fas fa-home"></i><span>Dashboard</span></a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">LEARNING</div>
+      <a href="#" class="sidebar-link" data-page="all-courses"><i class="fas fa-book-open"></i><span>All Courses</span></a>
+      <a href="#" class="sidebar-link" data-page="enrolled-courses"><i class="fas fa-graduation-cap"></i><span>Enrolled Courses</span></a>
+      <a href="#" class="sidebar-link" data-page="assessments"><i class="fas fa-brain"></i><span>Assessments</span></a>
+      <a href="#" class="sidebar-link" data-page="certificates"><i class="fas fa-certificate"></i><span>Certificates</span></a>
+      <a href="#" class="sidebar-link" data-page="progress"><i class="fas fa-chart-line"></i><span>Progress</span></a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">CAREER</div>
+      <a href="#" class="sidebar-link" data-page="all-jobs"><i class="fas fa-briefcase"></i><span>All Jobs</span></a>
+      <a href="#" class="sidebar-link" data-page="applied-jobs"><i class="fas fa-check-circle"></i><span>Applied Jobs</span></a>
+      <a href="#" class="sidebar-link" data-page="resume"><i class="fas fa-file-alt"></i><span>Resume</span></a>
+      <a href="ai-interview.html" class="sidebar-link"><i class="fas fa-video"></i><span>AI Interview</span></a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">ACCOUNT</div>
+      <a href="#" class="sidebar-link" data-page="profile"><i class="fas fa-user"></i><span>Profile</span></a>
+      <a href="#" class="sidebar-link" id="logoutBtn"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+    </div>
+  </nav>
+</aside>
+
+<!-- Main Content -->
+<main class="main-content">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="btn-icon mobile-menu-toggle" id="mobileMenuToggle"><i class="fas fa-bars"></i></button>
+      <h1 class="topbar-title" id="topbarTitle">My Dashboard</h1>
+    </div>
+    <div class="topbar-right">
+      <button class="btn-icon" id="themeToggle"><i class="fas fa-moon"></i></button>
+      <button class="btn-icon topbar-notifications" id="notifBtn">
+        <i class="fas fa-bell"></i>
+        <span class="notification-badge">3</span>
+      </button>
+      <div class="topbar-profile">
+        <div class="avatar avatar-md" id="userAvatar" style="background:linear-gradient(135deg,#06B6D4,#0891B2)">J</div>
+        <div class="topbar-profile-info">
+          <div class="topbar-profile-name" id="userName">John Doe</div>
+          <div class="topbar-profile-role" id="userRole">Student</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Dashboard Content -->
+  <div class="dashboard-content" id="dashboardContent">
+    <!-- Overview Page -->
+    <div class="page-content active" id="overview-page">
+      
+      <!-- Welcome Banner -->
+      <div class="welcome-banner">
+        <div class="welcome-content">
+          <h2 class="welcome-title" id="welcomeTitle">Welcome back, John! 👋</h2>
+          <p class="welcome-subtitle">You're making great progress. Keep learning and growing!</p>
+        </div>
+        <div class="welcome-streak">
+          <div class="streak-icon"><i class="fas fa-fire"></i></div>
+          <div class="streak-info">
+            <div class="streak-value" id="streakValue">7 Days</div>
+            <div class="streak-label">Learning Streak</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Interview Feature Card -->
+      <div class="feature-highlight-card">
+        <div class="feature-highlight-content">
+          <div class="feature-highlight-icon">
+            <i class="fas fa-video"></i>
+          </div>
+          <div class="feature-highlight-text">
+            <h3 class="feature-highlight-title">Practice with AI Interview</h3>
+            <p class="feature-highlight-desc">Get personalized interview questions based on your resume. Practice with AI and improve your interview skills.</p>
+            <div class="feature-highlight-features">
+              <span class="feature-tag"><i class="fas fa-check"></i> Resume-based Questions</span>
+              <span class="feature-tag"><i class="fas fa-check"></i> Real-time Feedback</span>
+              <span class="feature-tag"><i class="fas fa-check"></i> Video Recording</span>
+              <span class="feature-tag"><i class="fas fa-check"></i> Performance Analysis</span>
+            </div>
+          </div>
+        </div>
+        <div class="feature-highlight-action">
+          <a href="ai-interview.html" class="btn btn-primary btn-lg">
+            <i class="fas fa-play-circle"></i> Start AI Interview
+          </a>
+          <p class="feature-highlight-note">
+            <i class="fas fa-info-circle"></i> Camera and microphone required
+          </p>
+        </div>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(108,60,225,0.15);color:#6C3CE1">
+            <i class="fas fa-book-open"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Enrolled Courses</div>
+            <div class="stat-value" id="enrolled-courses">0</div>
+            <div class="stat-change up">
+              <i class="fas fa-arrow-up"></i> <span class="realtime-indicator">Live</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(6,182,212,0.15);color:#06B6D4">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Completed</div>
+            <div class="stat-value" id="completed-courses">0</div>
+            <div class="stat-change up">
+              <i class="fas fa-arrow-up"></i> <span id="inprogress-courses-label">In Progress</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(16,185,129,0.15);color:#10B981">
+            <i class="fas fa-certificate"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Certificates</div>
+            <div class="stat-value" id="user-certificates">0</div>
+            <div class="stat-change up">
+              <i class="fas fa-arrow-up"></i> <span class="realtime-indicator">Live</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(249,115,22,0.15);color:#F97316">
+            <i class="fas fa-star"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Avg Score</div>
+            <div class="stat-value" id="avg-score">0%</div>
+            <div class="stat-change up">
+              <i class="fas fa-arrow-up"></i> +5%
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <h3 class="chart-card-title">Learning Progress</h3>
+              <p class="chart-card-subtitle">Your weekly learning activity</p>
+            </div>
+            <select class="chart-filter">
+              <option>This Week</option>
+              <option>This Month</option>
+            </select>
+          </div>
+          <div class="chart-container">
+            <canvas id="progressChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <h3 class="chart-card-title">Skills Distribution</h3>
+              <p class="chart-card-subtitle">Your skill categories</p>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="skillsChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Continue Learning — real enrolled courses -->
+      <div class="section-card">
+        <div class="section-header">
+          <div>
+            <h3 class="section-title">Continue Learning</h3>
+            <p class="section-subtitle">Pick up where you left off</p>
+          </div>
+          <a href="#" class="view-all-link" onclick="document.querySelector('[data-page=enrolled-courses]').click();return false;">View All <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="course-grid" id="continueLearningContainer">
+          <div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--text-muted);">
+            <i class="fas fa-spinner fa-spin"></i> Loading your courses...
+          </div>
+        </div>
+      </div>
+
+      <!-- Recommended Jobs — real jobs from API -->
+      <div class="section-card">
+        <div class="section-header">
+          <div>
+            <h3 class="section-title">Recommended Jobs</h3>
+            <p class="section-subtitle">Latest opportunities for you</p>
+          </div>
+          <a href="#" class="view-all-link" onclick="document.querySelector('[data-page=all-jobs]').click();return false;">View All <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="job-list" id="recommendedJobsContainer">
+          <div style="text-align:center;padding:2rem;color:var(--text-muted);">
+            <i class="fas fa-spinner fa-spin"></i> Loading jobs...
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- All Courses Page -->
+    <div class="page-content" id="all-courses-page">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">All Courses</h2>
+          <p class="page-subtitle">Browse and enroll in available courses</p>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="course-grid" id="allCoursesContainer">
+          <div style="text-align:center;padding:3rem;">Loading courses...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enrolled Courses Page -->
+    <div class="page-content" id="enrolled-courses-page">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Enrolled Courses</h2>
+          <p class="page-subtitle">Track your learning progress</p>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="course-grid" id="enrolledCoursesContainer">
+          <div style="text-align:center;padding:3rem;">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assessments Page -->
+    <div class="page-content" id="assessments-page">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Assessments</h2>
+          <p class="page-subtitle">Test your knowledge</p>
+        </div>
+      </div>
+
+      <div id="assessmentsContainer">
+        <div style="text-align:center;padding:3rem;">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Certificates Page -->
+    <div class="page-content" id="certificates-page">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">My Certificates</h2>
+          <p class="page-subtitle">Your earned certificates</p>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:1.5rem;" id="certificatesContainer">
+        <div style="text-align:center;padding:3rem;">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Progress Page -->
+    <div class="page-content" id="progress-page">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Learning Progress</h2>
+          <p class="page-subtitle">Track your learning journey</p>
+        </div>
+      </div>
+
+      <div id="progressContainer">
+        <div style="text-align:center;padding:3rem;">Loading...</div>
+      </div>
+    </div>
+
+    <!-- All Jobs Page -->
+    <div class="page-content" id="all-jobs-page">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">All Jobs</h2>
+          <p class="page-subtitle">Browse and apply to available jobs</p>
+        </div>
+      </div>
+
+      <div style="margin-bottom:2rem;">
+        <input type="text" class="form-control user-search-input" data-type="jobs" placeholder="Search jobs..." style="max-width:400px;">
+      </div>
+
+      <div class="job-list" id="allJobsContainer">
+        <div style="text-align:center;padding:3rem;">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Applied Jobs Page -->
+    <div class="page-content" id="applied-jobs-page">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Applied Jobs</h2>
+          <p class="page-subtitle">Track your job applications</p>
+        </div>
+      </div>
+
+      <div class="job-list" id="appliedJobsContainer">
+        <div style="text-align:center;padding:3rem;">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Resume Page -->
+    <div class="page-content" id="resume-page">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Resume Builder & Analysis</h2>
+          <p class="page-subtitle">Upload your resume for AI-powered analysis</p>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h3 class="section-title">Upload Resume</h3>
+        <div style="border:2px dashed var(--border);border-radius:var(--radius-lg);padding:3rem;text-align:center;margin-top:1.5rem;">
+          <i class="fas fa-file-pdf" style="font-size:3rem;color:var(--primary);margin-bottom:1rem;"></i>
+          <p style="color:var(--text-secondary);margin-bottom:1.5rem;">Upload your resume for AI analysis (PDF, DOC, DOCX)</p>
+          <input type="file" id="resumeUpload" accept=".pdf,.doc,.docx" hidden>
+          <button class="btn btn-primary" onclick="document.getElementById('resumeUpload').click()">
+            <i class="fas fa-upload"></i> Choose File
+          </button>
+          <div id="resumeFileName" style="margin-top:1rem;color:var(--success);display:none;">
+            <i class="fas fa-check-circle"></i> <span id="fileNameText"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card" id="resumeAnalysisSection" style="margin-top:2rem;display:none;">
+        <h3 class="section-title">
+          <i class="fas fa-brain"></i> AI Analysis Results
+        </h3>
+        <div id="resumeAnalysisContent"></div>
+      </div>
+    </div>
+
+    <!-- Profile Page -->
+    <div class="page-content" id="profile-page">
+      <div id="profileContainer">
+        <div style="text-align:center;padding:3rem;">Loading...</div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="../js/user-dashboard.js?v=6"></script>
+<script src="../js/user-jobs.js"></script>
+<script src="../js/user-assessments.js"></script>
+<script src="../js/user-notifications.js"></script>
+<script src="../js/analytics.js"></script>
+<script>
+// Load user data on page load
+(async function() {
+  const userData = getUserData();
+  
+  if (userData) {
+    // Update user name in topbar
+    const userNameEl = document.getElementById('userName');
+    const userRoleEl = document.getElementById('userRole');
+    const userAvatarEl = document.getElementById('userAvatar');
+    const welcomeTitleEl = document.getElementById('welcomeTitle');
+    
+    if (userNameEl) {
+      userNameEl.textContent = userData.name || 'User';
+    }
+    
+    if (userRoleEl) {
+      userRoleEl.textContent = userData.role === 'admin' ? 'Admin' : 'Student';
+    }
+    
+    if (userAvatarEl) {
+      // Get first letter of name for avatar
+      const firstLetter = (userData.name || 'U').charAt(0).toUpperCase();
+      userAvatarEl.textContent = firstLetter;
+      
+      // If user has custom avatar URL, use it
+      if (userData.avatar) {
+        userAvatarEl.style.backgroundImage = `url(${userData.avatar})`;
+        userAvatarEl.style.backgroundSize = 'cover';
+        userAvatarEl.textContent = '';
+      }
+    }
+    
+    if (welcomeTitleEl) {
+      const firstName = (userData.name || 'User').split(' ')[0];
+      welcomeTitleEl.textContent = `Welcome back, ${firstName}! 👋`;
+    }
+    
+    // Update streak if available
+    if (userData.learningStreak) {
+      const streakValueEl = document.getElementById('streakValue');
+      if (streakValueEl) {
+        const days = userData.learningStreak.current || 0;
+        streakValueEl.textContent = `${days} ${days === 1 ? 'Day' : 'Days'}`;
+      }
+    }
+  }
+  
+  // Optionally fetch fresh user data from API
+  try {
+    const response = await fetch(API_ENDPOINTS.me, {
+      headers: {
+        'Authorization': `Bearer ${getAuthToken()}`
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success && data.user) {
+        // Update stored user data
+        setUserData(data.user);
+        
+        // Update UI with fresh data
+        const userNameEl = document.getElementById('userName');
+        const welcomeTitleEl = document.getElementById('welcomeTitle');
+        
+        if (userNameEl) {
+          userNameEl.textContent = data.user.name || 'User';
+        }
+        
+        if (welcomeTitleEl) {
+          const firstName = (data.user.name || 'User').split(' ')[0];
+          welcomeTitleEl.textContent = `Welcome back, ${firstName}! 👋`;
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+  }
+})();
+
+// Logout handler
+document.getElementById('logoutBtn').addEventListener('click', async function(e) {
+  e.preventDefault();
+  
+  try {
+    // Call logout API
+    await fetch(API_ENDPOINTS.logout, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getAuthToken()}`
+      }
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+  }
+  
+  // Clear local storage
+  removeAuthToken();
+  
+  // Show toast
+  showToast('Logged out successfully', 'success');
+  
+  // Redirect to home
+  setTimeout(() => {
+    window.location.href = '../index.html';
+  }, 500);
+});
+
+// Initialize real-time analytics for user dashboard
+if (typeof initUserAnalytics === 'function') {
+  const userData = getUserData();
+  if (userData && userData.id) {
+    setTimeout(() => {
+      initUserAnalytics(userData.id);
+      console.log('User dashboard real-time analytics initialized');
+    }, 1000);
+  }
+}
+</script>
+</body>
+</html>

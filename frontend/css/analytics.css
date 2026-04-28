@@ -1,0 +1,250 @@
+/* ===== NEXTSTEP AI – REAL-TIME ANALYTICS STYLES ===== */
+
+/* Pulse animation for live indicator */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+/* Live dot animation */
+.hdc-live-dot {
+  animation: pulse 2s infinite;
+}
+
+/* Value update animation */
+@keyframes valueUpdate {
+  0% {
+    transform: scale(1);
+    color: inherit;
+  }
+  50% {
+    transform: scale(1.1);
+    color: var(--primary);
+  }
+  100% {
+    transform: scale(1);
+    color: inherit;
+  }
+}
+
+.stat-value.updating,
+.hdc-kpi-value.updating,
+.hdc-course-pct.updating {
+  animation: valueUpdate 0.5s ease;
+}
+
+/* Glow effect for live badge */
+.hdc-badge {
+  animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(16, 185, 129, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.8);
+  }
+}
+
+/* Progress bar animation */
+.hdc-course-bar {
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Trend indicator animation */
+.hdc-kpi-trend {
+  transition: all 0.3s ease;
+}
+
+.hdc-kpi-trend.up {
+  animation: slideUp 0.5s ease;
+}
+
+.hdc-kpi-trend.down {
+  animation: slideDown 0.5s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(5px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-5px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Circular progress animation */
+.hdc-footer-circle svg circle:last-child {
+  transition: stroke-dasharray 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Shimmer effect for loading state */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.analytics-loading {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Real-time indicator */
+.realtime-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--success);
+  padding: 4px 8px;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.realtime-indicator::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: var(--success);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+/* Stat card hover effect with real-time data */
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.stat-card {
+  transition: all 0.3s ease;
+}
+
+/* KPI card animation */
+.hdc-kpi {
+  transition: all 0.3s ease;
+}
+
+.hdc-kpi:hover {
+  transform: translateY(-2px);
+}
+
+/* Timestamp fade in */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+#analytics-timestamp {
+  animation: fadeIn 0.5s ease;
+}
+
+/* Data refresh indicator */
+.data-refreshing {
+  position: relative;
+  overflow: hidden;
+}
+
+.data-refreshing::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--primary),
+    transparent
+  );
+  animation: refreshSlide 1s ease-in-out;
+}
+
+@keyframes refreshSlide {
+  from {
+    left: -100%;
+  }
+  to {
+    left: 100%;
+  }
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .realtime-indicator {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+  }
+  
+  .realtime-indicator::before {
+    width: 5px;
+    height: 5px;
+  }
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .analytics-loading {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+[data-theme="dark"] .realtime-indicator {
+  background: rgba(16, 185, 129, 0.15);
+}
+
+/* Number counter animation */
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stat-value.count-up,
+.hdc-kpi-value.count-up {
+  animation: countUp 0.4s ease;
+}

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Login – NextStep AI</title>
+<link rel="icon" type="image/svg+xml" href="../favicon.svg"/>
+<link rel="stylesheet" href="../css/variables.css"/>
+<link rel="stylesheet" href="../css/global.css"/>
+<link rel="stylesheet" href="../css/auth.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<script src="../js/config.js"></script>
+<script>
+  (function(){
+    const t = localStorage.getItem('nextstep-theme') || 'light';
+    document.documentElement.setAttribute('data-theme', t);
+    // Redirect if already authenticated
+    redirectIfAuthenticated();
+  })();
+</script>
+</head>
+<body>
+<div class="auth-page">
+
+  <!-- LEFT PANEL -->
+  <div class="auth-left">
+    <div class="auth-left-blob auth-left-blob-1"></div>
+    <div class="auth-left-blob auth-left-blob-2"></div>
+    <div class="auth-left-blob auth-left-blob-3"></div>
+    <div class="auth-left-content">
+      <a href="../index.html" class="auth-back"><i class="fas fa-arrow-left"></i> Back to Home</a>
+      <div class="auth-brand">
+        <div class="auth-brand-icon">N</div>
+        <span class="auth-brand-name">NextStep <span>AI</span></span>
+      </div>
+      <h2 class="auth-left-title">Welcome Back to<br><span>Your Career Journey</span></h2>
+      <p class="auth-left-subtitle">Log in to continue learning, take assessments, and discover job opportunities tailored just for you.</p>
+      <div class="auth-features">
+        <div class="auth-feature-item">
+          <div class="auth-feature-icon" style="background:rgba(108,60,225,0.2);color:#a78bfa">
+            <i class="fas fa-play-circle"></i>
+          </div>
+          <div class="auth-feature-text">
+            <div class="auth-feature-title">200+ Free Courses</div>
+            <div class="auth-feature-desc">Learn from industry experts at zero cost</div>
+          </div>
+        </div>
+        <div class="auth-feature-item">
+          <div class="auth-feature-icon" style="background:rgba(6,182,212,0.2);color:#06B6D4">
+            <i class="fas fa-brain"></i>
+          </div>
+          <div class="auth-feature-text">
+            <div class="auth-feature-title">AI-Powered Assessments</div>
+            <div class="auth-feature-desc">Adaptive tests that match your skill level</div>
+          </div>
+        </div>
+        <div class="auth-feature-item">
+          <div class="auth-feature-icon" style="background:rgba(16,185,129,0.2);color:#10B981">
+            <i class="fas fa-briefcase"></i>
+          </div>
+          <div class="auth-feature-text">
+            <div class="auth-feature-title">Smart Job Matching</div>
+            <div class="auth-feature-desc">Get matched with 1200+ top Indian companies</div>
+          </div>
+        </div>
+      </div>
+      <div class="auth-left-footer">
+        <div class="auth-left-footer-avatars">
+          <div class="avatar" style="background:linear-gradient(135deg,#6C3CE1,#8B5CF6)">P</div>
+          <div class="avatar" style="background:linear-gradient(135deg,#06B6D4,#0891B2)">R</div>
+          <div class="avatar" style="background:linear-gradient(135deg,#F97316,#EA580C)">A</div>
+          <div class="avatar" style="background:linear-gradient(135deg,#EC4899,#DB2777)">S</div>
+        </div>
+        <div class="auth-left-footer-text"><strong>50,000+</strong> students already learning</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="auth-right">
+    <div class="auth-form-container">
+      <div class="auth-form-header">
+        <h1 class="auth-form-title">Sign In</h1>
+        <p class="auth-form-subtitle">Don't have an account? <a href="signup.html">Create one free</a></p>
+      </div>
+
+      <!-- Role Selection -->
+      <div class="role-selection">
+        <div class="role-card active" data-role="user">
+          <div class="role-icon" style="background:rgba(108,60,225,0.15);color:#6C3CE1">
+            <i class="fas fa-user-graduate"></i>
+          </div>
+          <div class="role-title">Student</div>
+          <div class="role-desc">Access courses and learning</div>
+        </div>
+        <div class="role-card" data-role="admin">
+          <div class="role-icon" style="background:rgba(6,182,212,0.15);color:#06B6D4">
+            <i class="fas fa-user-shield"></i>
+          </div>
+          <div class="role-title">Admin</div>
+          <div class="role-desc">Manage platform</div>
+        </div>
+      </div>
+
+      <div class="auth-card">
+        <form class="auth-form" id="loginForm" novalidate>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label class="form-label" for="loginEmail">Email Address</label>
+            <div class="input-wrapper">
+              <input type="email" id="loginEmail" class="form-control" placeholder="you@example.com" autocomplete="email"/>
+              <i class="fas fa-envelope input-icon"></i>
+            </div>
+            <div class="field-error" id="emailError"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label class="form-label" for="loginPassword">Password</label>
+            <div class="input-wrapper">
+              <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" autocomplete="current-password"/>
+              <i class="fas fa-lock input-icon"></i>
+              <button type="button" class="input-action" id="togglePassword" title="Show/Hide Password">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+            <div class="field-error" id="passwordError"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+          </div>
+
+          <!-- Remember + Forgot -->
+          <div class="form-row">
+            <label class="form-check">
+              <input type="checkbox" id="rememberMe"/> Remember me
+            </label>
+            <a href="#" class="forgot-link">Forgot Password?</a>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" class="auth-btn" id="loginBtn">
+            <i class="fas fa-sign-in-alt"></i> Sign In
+          </button>
+
+        </form>
+
+        <!-- Divider -->
+        <div class="auth-divider">or continue with</div>
+
+        <!-- Google -->
+        <button class="social-login-btn" id="googleLoginBtn" type="button">
+          <span class="google-icon"></span>
+          Continue with Google
+        </button>
+
+      </div>
+
+      <!-- Theme toggle -->
+      <div style="text-align:center;margin-top:24px">
+        <button id="themeToggleAuth" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:.85rem;display:inline-flex;align-items:center;gap:6px;">
+          <i class="fas fa-moon"></i> Toggle Dark Mode
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// Theme
+(function(){
+  const t = localStorage.getItem('nextstep-theme') || 'light';
+  document.documentElement.setAttribute('data-theme', t);
+  const btn = document.getElementById('themeToggleAuth');
+  if(btn) btn.innerHTML = t === 'dark' ? '<i class="fas fa-sun"></i> Toggle Light Mode' : '<i class="fas fa-moon"></i> Toggle Dark Mode';
+})();
+
+document.getElementById('themeToggleAuth').addEventListener('click', function(){
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('nextstep-theme', next);
+  this.innerHTML = next === 'dark' ? '<i class="fas fa-sun"></i> Toggle Light Mode' : '<i class="fas fa-moon"></i> Toggle Dark Mode';
+});
+
+// Password toggle
+document.getElementById('togglePassword').addEventListener('click', function(){
+  const input = document.getElementById('loginPassword');
+  const icon = this.querySelector('i');
+  if(input.type === 'password'){
+    input.type = 'text';
+    icon.className = 'fas fa-eye-slash';
+  } else {
+    input.type = 'password';
+    icon.className = 'fas fa-eye';
+  }
+});
+
+// Toast helper
+function showToast(msg, type='success'){
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  const icons = { success:'fa-check-circle', error:'fa-times-circle', warning:'fa-exclamation-triangle' };
+  toast.innerHTML = `<i class="fas ${icons[type]||'fa-info-circle'}" style="color:var(--${type==='success'?'success':type==='error'?'danger':'warning'})"></i><span>${msg}</span><span class="toast-close" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></span>`;
+  container.appendChild(toast);
+  setTimeout(()=>toast.remove(), 4000);
+}
+
+// Validation helpers
+function showError(fieldId, errorId, msg){
+  const field = document.getElementById(fieldId);
+  const err = document.getElementById(errorId);
+  field.classList.add('error'); field.classList.remove('success');
+  err.querySelector('span').textContent = msg;
+  err.classList.add('show');
+}
+function clearError(fieldId, errorId){
+  const field = document.getElementById(fieldId);
+  const err = document.getElementById(errorId);
+  field.classList.remove('error'); field.classList.add('success');
+  err.classList.remove('show');
+}
+
+// Role Selection
+let selectedRole = 'user';
+document.querySelectorAll('.role-card').forEach(card => {
+  card.addEventListener('click', function(){
+    document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
+    this.classList.add('active');
+    selectedRole = this.getAttribute('data-role');
+  });
+});
+
+// Form submit
+document.getElementById('loginForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  let valid = true;
+
+  if(!email){
+    showError('loginEmail','emailError','Email address is required'); valid = false;
+  } else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    showError('loginEmail','emailError','Please enter a valid email address'); valid = false;
+  } else {
+    clearError('loginEmail','emailError');
+  }
+
+  if(!password){
+    showError('loginPassword','passwordError','Password is required'); valid = false;
+  } else if(password.length < 6){
+    showError('loginPassword','passwordError','Password must be at least 6 characters'); valid = false;
+  } else {
+    clearError('loginPassword','passwordError');
+  }
+
+  if(!valid) return;
+
+  const btn = document.getElementById('loginBtn');
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
+  btn.disabled = true;
+
+  try {
+    // Call the real API
+    const response = await fetch(API_ENDPOINTS.login, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Login failed');
+    }
+
+    // Store token and user data
+    setAuthToken(data.token);
+    setUserData(data.user);
+
+    // Show success message
+    showToast(`Welcome back, ${data.user.name}!`, 'success');
+
+    // Redirect based on role
+    setTimeout(() => {
+      if (data.user.role === 'admin') {
+        window.location.href = 'admin-dashboard.html';
+      } else {
+        window.location.href = 'user-dashboard.html';
+      }
+    }, 800);
+
+  } catch (error) {
+    console.error('Login error:', error);
+    showToast(error.message || 'Login failed. Please try again.', 'error');
+    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+    btn.disabled = false;
+  }
+});
+
+// Google login simulation
+document.getElementById('googleLoginBtn').addEventListener('click', function(){
+  showToast('Google login coming soon!', 'warning');
+});
+
+// Real-time validation
+document.getElementById('loginEmail').addEventListener('blur', function(){
+  if(this.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.value)){
+    showError('loginEmail','emailError','Please enter a valid email address');
+  } else if(this.value){
+    clearError('loginEmail','emailError');
+  }
+});
+</script>
+</body>
+</html>
