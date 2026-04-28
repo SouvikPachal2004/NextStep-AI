@@ -1,5 +1,8 @@
 // API Configuration
-const API_URL = 'http://localhost:5000/api';
+// Auto-detect: use deployed backend in production, localhost in development
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://localhost:5000/api'
+  : 'https://nextstep-ai-backend.onrender.com/api';
 
 // API endpoints
 const API_ENDPOINTS = {
