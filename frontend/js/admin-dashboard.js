@@ -35,6 +35,8 @@ async function loadDashboardData() {
     if (coursesRes.ok) {
       const coursesData = await coursesRes.json();
       window.allCourses = coursesData.data || [];
+      
+      // Add enrollment counts to courses (will be calculated after enrollments are loaded)
       renderCoursesTable(window.allCourses);
       // Update Total Courses count
       document.getElementById('total-courses').textContent = window.allCourses.length;
@@ -65,6 +67,20 @@ async function loadDashboardData() {
       renderRecentEnrollments(window.allEnrollments);
       // Update Total Enrollments count
       document.getElementById('total-enrollments-count').textContent = window.allEnrollments.length;
+      
+      // Calculate and add enrollment counts to courses
+      if (window.allCourses && window.allCourses.length > 0) {
+        window.allCourses.forEach(course => {
+          const enrollmentCount = window.allEnrollments.filter(e => {
+            const courseId = e.course?._id || e.course;
+            return String(courseId) === String(course._id);
+          }).length;
+          course.enrollmentCount = enrollmentCount;
+        });
+        
+        // Re-render courses table with enrollment counts
+        renderCoursesTable(window.allCourses);
+      }
     }
 
     // Load certificates (issued + pending requests)
@@ -826,3 +842,190 @@ function renderRecentEnrollments(enrollments) {
 }
 
 window.renderRecentEnrollments = renderRecentEnrollments;
+
+
+// ===== ANALYTICS PAGE =====
+async function loadAnalyticsData() {
+  try {
+    const token = getAuthToken();
+    const headers = { 'Authorization': `Bearer ${token}` };
+    
+    // Fetch all data
+    const [usersRes, coursesRes, enrollmentsRes, jobsRes] = await Promise.all([
+      fetch(`${API_URL}/users`, { headers }),
+      fetch(`${API_URL}/courses`),
+      fetch(`${API_URL}/enrollments`, { headers }),
+      fetch(`${API_URL}/jobs?all=true`, { headers })
+    ]);
+    
+    let totalUsers = 0;
+    let totalCourses = 0;
+    let totalEnrollments = 0;
+    let totalJobs = 0;
+    let users = [];
+    let courses = [];
+    let enrollments = [];
+    
+    if (usersRes.ok) {
+      const data = await usersRes.json();
+      users = data.data || [];
+      totalUsers = users.filter(u => u.role === 'student').length;
+    }
+    
+    if (coursesRes.ok) {
+      const data = await coursesRes.json();
+      courses = data.data || [];
+      totalCourses = courses.length;
+    }
+    
+    if (enrollmentsRes.ok) {
+      const data = await enrollmentsRes.json();
+      enrollments = data.data || [];
+      totalEnrollments = enrollments.length;
+    }
+    
+    if (jobsRes.ok) {
+      const data = await jobsRes.json();
+      const jobs = data.data || [];
+      totalJobs = jobs.filter(j => j.isActive).length;
+    }
+    
+    // Update stat cards
+    document.getElementById('analytics-total-users').textContent = totalUsers;
+    document.getElementById('analytics-total-courses').textContent = totalCourses;
+    document.getElementById('analytics-total-enrollments').textContent = totalEnrollments;
+    document.getElementById('analytics-total-jobs').textContent = totalJobs;
+    
+    // Prepare growth chart data
+    renderGrowthChart(users, courses, enrollments);
+    
+  } catch (error) {
+    console.error('Error loading analytics data:', error);
+    showToast('Failed to load analytics data', 'error');
+  }
+}
+
+// Render growth chart
+function renderGrowthChart(users, courses, enrollments) {
+  const ctx = document.getElementById('growthChart');
+  if (!ctx || typeof Chart === 'undefined') return;
+  
+  // Get last 6 months
+  const months = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({
+      label: d.toLocaleDateString('en-US', { month: 'short' }),
+      date: d
+    });
+  }
+  
+  // Count users per month
+  const userCounts = months.map(month => {
+    return users.filter(u => {
+      const userDate = new Date(u.createdAt);
+      return userDate.getFullYear() === month.date.getFullYear() &&
+             userDate.getMonth() === month.date.getMonth();
+    }).length;
+  });
+  
+  // Count courses per month
+  const courseCounts = months.map(month => {
+    return courses.filter(c => {
+      const courseDate = new Date(c.createdAt);
+      return courseDate.getFullYear() === month.date.getFullYear() &&
+             courseDate.getMonth() === month.date.getMonth();
+    }).length;
+  });
+  
+  // Count enrollments per month
+  const enrollmentCounts = months.map(month => {
+    return enrollments.filter(e => {
+      const enrollDate = new Date(e.createdAt);
+      return enrollDate.getFullYear() === month.date.getFullYear() &&
+             enrollDate.getMonth() === month.date.getMonth();
+    }).length;
+  });
+  
+  // Destroy existing chart if any
+  const existingChart = Chart.getChart('growthChart');
+  if (existingChart) {
+    existingChart.destroy();
+  }
+  
+  // Create new chart
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: months.map(m => m.label),
+      datasets: [
+        {
+          label: 'New Users',
+          data: userCounts,
+          borderColor: '#6C3CE1',
+          backgroundColor: 'rgba(108,60,225,0.1)',
+          tension: 0.4,
+          fill: true,
+          borderWidth: 2
+        },
+        {
+          label: 'New Courses',
+          data: courseCounts,
+          borderColor: '#06B6D4',
+          backgroundColor: 'rgba(6,182,212,0.1)',
+          tension: 0.4,
+          fill: true,
+          borderWidth: 2
+        },
+        {
+          label: 'New Enrollments',
+          data: enrollmentCounts,
+          borderColor: '#10B981',
+          backgroundColor: 'rgba(16,185,129,0.1)',
+          tension: 0.4,
+          fill: true,
+          borderWidth: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top'
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(0,0,0,0.05)'
+          },
+          ticks: {
+            stepSize: 1
+          }
+        },
+        x: {
+          grid: {
+            display: false
+          }
+        }
+      },
+      interaction: {
+        mode: 'nearest',
+        axis: 'x',
+        intersect: false
+      }
+    }
+  });
+}
+
+// Export function
+window.loadAnalyticsData = loadAnalyticsData;

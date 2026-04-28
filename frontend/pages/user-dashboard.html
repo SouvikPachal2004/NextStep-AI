@@ -294,7 +294,10 @@
       </div>
 
       <div id="assessmentsContainer">
-        <div style="text-align:center;padding:3rem;">Loading...</div>
+        <div style="text-align:center;padding:3rem;color:var(--text-muted);">
+          <i class="fas fa-spinner fa-spin" style="font-size:2rem;color:var(--primary);display:block;margin-bottom:1rem;"></i>
+          <p>Loading assessments...</p>
+        </div>
       </div>
     </div>
 
@@ -403,11 +406,11 @@
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
-<script src="../js/user-dashboard.js?v=6"></script>
-<script src="../js/user-jobs.js"></script>
-<script src="../js/user-assessments.js"></script>
-<script src="../js/user-notifications.js"></script>
-<script src="../js/analytics.js"></script>
+<script src="../js/user-dashboard.js?v=7"></script>
+<script src="../js/user-jobs.js?v=2"></script>
+<script src="../js/user-assessments.js?v=3"></script>
+<script src="../js/user-notifications.js?v=2"></script>
+<script src="../js/analytics.js?v=2"></script>
 <script>
 // Load user data on page load
 (async function() {

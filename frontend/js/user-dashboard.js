@@ -66,7 +66,7 @@ sidebarLinks.forEach(link => {
       if (page === 'profile'           && typeof renderProfileSettings    === 'function') renderProfileSettings();
       if (page === 'all-courses'       && typeof renderAllCourses         === 'function') renderAllCourses();
       if (page === 'enrolled-courses'  && typeof renderEnrolledCourses    === 'function') renderEnrolledCourses();
-      if (page === 'assessments'       && typeof renderUserAssessments    === 'function') renderUserAssessments(window.userAssessments || []);
+      if (page === 'assessments') loadAndRenderAssessments();
       if (page === 'certificates'      && typeof renderUserCertificates   === 'function') renderUserCertificates(window.userCertificates || []);
       if (page === 'all-jobs'          && typeof renderAllJobs            === 'function') renderAllJobs();
       if (page === 'applied-jobs'      && typeof renderAppliedJobs        === 'function') renderAppliedJobs();
@@ -88,6 +88,76 @@ function showToast(msg, type = 'success') {
   toast.innerHTML = `<i class="fas ${icons[type] || 'fa-info-circle'}" style="color:var(--${type==='success'?'success':type==='error'?'danger':'warning'})"></i><span>${msg}</span><span class="toast-close" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></span>`;
   container.appendChild(toast);
   setTimeout(() => toast.remove(), 4000);
+}
+
+// ===== LOAD & RENDER ASSESSMENTS (always fresh from API) =====
+async function loadAndRenderAssessments() {
+  const container = document.getElementById('assessmentsContainer');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div style="text-align:center;padding:3rem;color:var(--text-muted);">
+      <i class="fas fa-spinner fa-spin" style="font-size:2rem;margin-bottom:1rem;display:block;color:var(--primary);"></i>
+      <p style="margin:0;">Loading assessments...</p>
+    </div>`;
+
+  try {
+    const token = getAuthToken();
+    const res = await fetch(`${API_URL}/assessments`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const data = await res.json();
+    window.userAssessments = data.data || [];
+
+    // Wait up to 2s for user-assessments.js to be ready
+    let waited = 0;
+    while (typeof renderUserAssessments !== 'function' && waited < 2000) {
+      await new Promise(r => setTimeout(r, 100));
+      waited += 100;
+    }
+
+    if (typeof renderUserAssessments === 'function') {
+      renderUserAssessments(window.userAssessments);
+    } else {
+      // Fallback simple render if user-assessments.js not loaded
+      if (window.userAssessments.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center;padding:4rem 2rem;background:var(--bg-card);border-radius:var(--radius-lg);border:1px solid var(--border);">
+            <i class="fas fa-brain" style="font-size:3rem;color:var(--primary);margin-bottom:1rem;display:block;"></i>
+            <h3 style="color:var(--text-primary);margin-bottom:0.5rem;">No Assessments Yet</h3>
+            <p style="color:var(--text-muted);">Assessments will appear here once the admin publishes them.</p>
+          </div>`;
+      } else {
+        container.innerHTML = window.userAssessments.map(a => `
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1rem;">
+            <h4 style="color:var(--text-primary);margin-bottom:0.5rem;">${a.title}</h4>
+            <p style="color:var(--text-muted);font-size:0.875rem;">${a.description || ''}</p>
+            <div style="margin-top:1rem;display:flex;gap:1rem;font-size:0.82rem;color:var(--text-secondary);">
+              <span><i class="fas fa-clock"></i> ${a.duration || 30} min</span>
+              <span><i class="fas fa-question-circle"></i> ${a.questions?.length || 0} questions</span>
+              <span><i class="fas fa-signal"></i> ${a.difficulty || 'Medium'}</span>
+            </div>
+            <button class="btn btn-primary btn-sm" style="margin-top:1rem;" onclick="startAssessment('${a._id}')">
+              <i class="fas fa-play"></i> Start Assessment
+            </button>
+          </div>`).join('');
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load assessments:', err);
+    container.innerHTML = `
+      <div style="text-align:center;padding:3rem;background:var(--bg-card);border-radius:var(--radius-lg);border:1px solid var(--border);">
+        <i class="fas fa-exclamation-circle" style="font-size:2.5rem;color:var(--danger);margin-bottom:1rem;display:block;"></i>
+        <h3 style="color:var(--text-primary);margin-bottom:0.5rem;">Failed to load assessments</h3>
+        <p style="color:var(--text-muted);margin-bottom:1.5rem;">Error: ${err.message}</p>
+        <button class="btn btn-primary btn-sm" onclick="loadAndRenderAssessments()">
+          <i class="fas fa-redo"></i> Retry
+        </button>
+      </div>`;
+  }
 }
 
 // ===== CHARTS =====
@@ -1650,3 +1720,4 @@ window.renderUserCertificates= renderUserCertificates;
 window.renderJobBoard        = renderJobBoard;
 window.renderProgressTracking= renderProgressTracking;
 window.renderProfileSettings = renderProfileSettings;
+window.loadAndRenderAssessments = loadAndRenderAssessments;

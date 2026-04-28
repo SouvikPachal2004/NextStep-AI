@@ -71,6 +71,9 @@ sidebarLinks.forEach(link => {
       if (typeof window.renderEnrollmentsTable === 'function' && page === 'enrollments') {
         window.renderEnrollmentsTable(window.allEnrollments || []);
       }
+      if (typeof window.loadAnalyticsData === 'function' && page === 'analytics') {
+        window.loadAnalyticsData();
+      }
     } else {
       showToast('Page under construction', 'warning');
     }
