@@ -4,6 +4,11 @@ const API_URL = (window.location.hostname === 'localhost' || window.location.hos
   ? 'http://localhost:5000/api'
   : 'https://nextstep-ai-backend.onrender.com/api';
 
+// ML Service Configuration
+const ML_API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://localhost:5001/api/ml'
+  : 'https://nextstep-ai-ml.onrender.com/api/ml';
+
 // API endpoints
 const API_ENDPOINTS = {
   // Auth
