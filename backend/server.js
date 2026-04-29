@@ -9,6 +9,7 @@ const app = express();
 // Middleware
 const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://127.0.0.1:5500',
+  'https://nextstepai-platform.netlify.app',
   'http://127.0.0.1:5500',
   'http://localhost:5500',
   'http://127.0.0.1:3000',
