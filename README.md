@@ -34,8 +34,6 @@ It provides personalized guidance based on user goals 🎯 and helps users stay 
 - HTML5 🌐  
 - CSS3 🎨  
 - JavaScript ⚡  
-- React.js ⚛️  
-- Tailwind CSS 💨  
 
 ### ⚙ Backend
 - Node.js 🟢  
