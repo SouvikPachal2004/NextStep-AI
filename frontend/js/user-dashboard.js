@@ -1787,6 +1787,9 @@ async function loadInterviewHistory() {
 
     const data = await response.json();
     const interviews = data.data || [];
+    
+    // Store interviews globally for remarks functionality
+    window.allInterviews = interviews;
 
     if (interviews.length === 0) {
       container.innerHTML = `
