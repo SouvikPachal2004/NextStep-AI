@@ -53,7 +53,7 @@ router.post('/upload', protect, upload.single('resume'), async (req, res) => {
 });
 
 // @route   POST /api/resume/analyze
-// @desc    Analyze resume with reliable default analysis
+// @desc    Analyze resume with dynamic content-based analysis
 // @access  Private
 router.post('/analyze', protect, upload.single('resume'), async (req, res) => {
   try {
@@ -63,55 +63,82 @@ router.post('/analyze', protect, upload.single('resume'), async (req, res) => {
 
     console.log('Resume analysis started for file:', req.file.originalname);
 
-    // Always provide a reliable default analysis based on filename and common patterns
-    const fileName = req.file.originalname.toLowerCase();
+    const fs = require('fs');
+    const pdfParse = require('pdf-parse');
     
-    // Generate default analysis based on filename patterns and common skills
-    const defaultAnalysis = generateDefaultResumeAnalysis(fileName);
+    let resumeText = '';
+    let analysisSource = 'default';
     
-    // Try to enhance with actual file content if possible
-    let enhancedAnalysis = defaultAnalysis;
+    // Try to extract text from the uploaded file
     try {
-      const fs = require('fs');
-      const pdfParse = require('pdf-parse');
-      
-      let resumeText = '';
-      
       if (req.file.mimetype === 'application/pdf') {
         try {
           const dataBuffer = fs.readFileSync(req.file.path);
           const pdfData = await pdfParse(dataBuffer);
-          resumeText = pdfData.text.toLowerCase();
-          
-          if (resumeText && resumeText.length > 100) {
-            enhancedAnalysis = enhanceAnalysisWithContent(defaultAnalysis, resumeText);
-            console.log('Enhanced analysis with PDF content');
-          }
+          resumeText = pdfData.text;
+          console.log('PDF extracted successfully, text length:', resumeText.length);
         } catch (pdfError) {
-          console.log('PDF parsing failed, using default analysis:', pdfError.message);
+          console.log('PDF parsing failed:', pdfError.message);
+          resumeText = '';
+        }
+      } else if (req.file.mimetype === 'application/msword' || 
+                 req.file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        // For Word documents, try basic text extraction
+        try {
+          const mammoth = require('mammoth');
+          const result = await mammoth.extractRawText({ path: req.file.path });
+          resumeText = result.value;
+          console.log('Word document extracted successfully, text length:', resumeText.length);
+        } catch (wordError) {
+          console.log('Word parsing failed:', wordError.message);
+          resumeText = '';
         }
       }
-      
-      // Clean up uploaded file
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (cleanupError) {
-        console.log('File cleanup warning:', cleanupError.message);
-      }
-      
-    } catch (enhancementError) {
-      console.log('Content enhancement failed, using default analysis:', enhancementError.message);
+    } catch (extractError) {
+      console.log('Text extraction error:', extractError.message);
+      resumeText = '';
+    }
+
+    // Generate analysis based on extracted content
+    let analysis;
+    if (resumeText && resumeText.length > 100) {
+      analysis = generateDynamicResumeAnalysis(resumeText, req.file.originalname);
+      analysisSource = 'dynamic';
+      console.log('Generated dynamic analysis from resume content');
+    } else {
+      // Fallback to filename-based analysis if extraction failed
+      analysis = generateDefaultResumeAnalysis(req.file.originalname.toLowerCase());
+      analysisSource = 'default';
+      console.log('Generated default analysis from filename');
+    }
+
+    // Clean up uploaded file after analysis
+    try {
+      fs.unlinkSync(req.file.path);
+      console.log('Uploaded file cleaned up');
+    } catch (cleanupError) {
+      console.log('File cleanup warning:', cleanupError.message);
     }
 
     console.log('Resume analysis completed successfully');
     res.json({ 
       success: true, 
-      data: enhancedAnalysis,
-      source: enhancedAnalysis.enhanced ? 'enhanced' : 'default'
+      data: analysis,
+      source: analysisSource
     });
 
   } catch (error) {
     console.error('Resume analysis error:', error);
+    
+    // Clean up file on error
+    if (req.file) {
+      try {
+        const fs = require('fs');
+        fs.unlinkSync(req.file.path);
+      } catch (e) {
+        console.log('Cleanup error:', e.message);
+      }
+    }
     
     // Even if everything fails, provide a basic analysis
     const basicAnalysis = {
@@ -155,7 +182,240 @@ router.post('/analyze', protect, upload.single('resume'), async (req, res) => {
   }
 });
 
+// Helper function to generate DYNAMIC analysis from actual resume content
+function generateDynamicResumeAnalysis(resumeText, fileName) {
+  const textLower = resumeText.toLowerCase();
+  
+  // Extract skills dynamically from content
+  const skillKeywords = {
+    'react': 'React', 'angular': 'Angular', 'vue': 'Vue.js', 'svelte': 'Svelte',
+    'node': 'Node.js', 'express': 'Express.js', 'django': 'Django', 'flask': 'Flask',
+    'fastapi': 'FastAPI', 'spring boot': 'Spring Boot', 'asp.net': 'ASP.NET',
+    'python': 'Python', 'java': 'Java', 'javascript': 'JavaScript', 'typescript': 'TypeScript',
+    'php': 'PHP', 'c++': 'C++', 'c#': 'C#', 'go': 'Go', 'rust': 'Rust',
+    'mysql': 'MySQL', 'postgresql': 'PostgreSQL', 'mongodb': 'MongoDB', 'redis': 'Redis',
+    'firebase': 'Firebase', 'dynamodb': 'DynamoDB', 'cassandra': 'Cassandra',
+    'aws': 'AWS', 'azure': 'Azure', 'gcp': 'Google Cloud', 'heroku': 'Heroku',
+    'docker': 'Docker', 'kubernetes': 'Kubernetes', 'jenkins': 'Jenkins',
+    'git': 'Git', 'github': 'GitHub', 'gitlab': 'GitLab', 'bitbucket': 'Bitbucket',
+    'graphql': 'GraphQL', 'rest': 'REST API', 'soap': 'SOAP',
+    'html': 'HTML', 'css': 'CSS', 'sass': 'SASS', 'tailwind': 'Tailwind CSS',
+    'webpack': 'Webpack', 'vite': 'Vite', 'gulp': 'Gulp', 'grunt': 'Grunt',
+    'jest': 'Jest', 'mocha': 'Mocha', 'pytest': 'Pytest', 'unittest': 'Unittest',
+    'agile': 'Agile', 'scrum': 'Scrum', 'kanban': 'Kanban',
+    'machine learning': 'Machine Learning', 'tensorflow': 'TensorFlow', 'pytorch': 'PyTorch',
+    'data science': 'Data Science', 'pandas': 'Pandas', 'numpy': 'NumPy', 'scikit-learn': 'Scikit-learn',
+    'ai': 'AI', 'nlp': 'NLP', 'computer vision': 'Computer Vision'
+  };
+  
+  const detectedSkills = [];
+  for (const [keyword, skill] of Object.entries(skillKeywords)) {
+    if (textLower.includes(keyword) && !detectedSkills.includes(skill)) {
+      detectedSkills.push(skill);
+    }
+  }
+  
+  // If no skills detected, use defaults
+  if (detectedSkills.length === 0) {
+    detectedSkills.push('JavaScript', 'HTML', 'CSS', 'Git');
+  }
+  
+  // Detect experience level
+  let experience = 'Entry Level';
+  const experiencePatterns = [
+    { pattern: /(\d+)\+?\s*(years?|yrs?)\s*(of)?\s*experience/i, key: 'years' },
+    { pattern: /experience\s*:?\s*(\d+)\+?\s*(years?|yrs?)/i, key: 'years' },
+    { pattern: /senior|lead|principal|architect/i, key: 'senior' },
+    { pattern: /junior|entry.?level|graduate/i, key: 'junior' },
+    { pattern: /mid.?level|intermediate/i, key: 'mid' }
+  ];
+  
+  for (const { pattern, key } of experiencePatterns) {
+    const match = textLower.match(pattern);
+    if (match) {
+      if (key === 'years') {
+        const years = parseInt(match[1]);
+        if (years <= 2) experience = '0-2 years';
+        else if (years <= 5) experience = '2-5 years';
+        else if (years <= 10) experience = '5-10 years';
+        else experience = '10+ years';
+      } else if (key === 'senior') {
+        experience = '5-10 years';
+      } else if (key === 'junior') {
+        experience = '0-2 years';
+      } else if (key === 'mid') {
+        experience = '2-5 years';
+      }
+      break;
+    }
+  }
+  
+  // Detect education
+  let education = "Bachelor's Degree";
+  if (textLower.includes('phd') || textLower.includes('doctorate')) {
+    education = 'PhD';
+  } else if (textLower.includes('master')) {
+    education = "Master's Degree";
+  } else if (textLower.includes('bachelor')) {
+    education = "Bachelor's Degree";
+  } else if (textLower.includes('diploma') || textLower.includes('certificate')) {
+    education = 'Diploma/Certificate';
+  }
+  
+  // Calculate ATS score based on content quality
+  let atsScore = 60;
+  
+  // Check for key sections
+  if (textLower.includes('contact') || textLower.includes('email') || textLower.includes('phone')) atsScore += 10;
+  if (textLower.includes('experience') || textLower.includes('work history')) atsScore += 10;
+  if (textLower.includes('education')) atsScore += 5;
+  if (textLower.includes('skill')) atsScore += 10;
+  if (textLower.includes('project')) atsScore += 5;
+  if (textLower.includes('certification') || textLower.includes('award')) atsScore += 3;
+  if (textLower.includes('github') || textLower.includes('portfolio') || textLower.includes('linkedin')) atsScore += 5;
+  
+  // Check for good formatting indicators
+  if (resumeText.split('\n').length > 10) atsScore += 3;
+  if (detectedSkills.length >= 5) atsScore += 5;
+  
+  atsScore = Math.min(95, atsScore);
+  
+  // Generate job matches based on detected skills
+  const jobMatches = generateJobMatches(detectedSkills, experience);
+  
+  // Generate suggestions based on what's missing
+  const suggestions = generateSuggestions(textLower, detectedSkills, experience);
+  
+  // Count words
+  const wordCount = resumeText.split(/\s+/).length;
+  
+  return {
+    skills: detectedSkills.slice(0, 15),
+    experience,
+    education,
+    atsScore,
+    atsBreakdown: {
+      sections: Math.min(40, 20 + detectedSkills.length),
+      contact: textLower.includes('contact') || textLower.includes('email') ? 20 : 10,
+      skills: detectedSkills.length > 0 ? 20 : 10,
+      formatting: textLower.includes('project') || textLower.includes('achievement') ? 15 : 10,
+      keywords: detectedSkills.length > 5 ? 10 : 5
+    },
+    jobMatches,
+    suggestions,
+    wordCount,
+    skillCategories: categorizeSkills(detectedSkills),
+    enhanced: true
+  };
+}
+
+// Helper function to generate job matches based on skills
+function generateJobMatches(skills, experience) {
+  const skillsLower = skills.map(s => s.toLowerCase());
+  const jobMatches = [];
+  
+  // Define job profiles with required skills
+  const jobProfiles = [
+    {
+      title: 'Frontend Developer',
+      keywords: ['react', 'angular', 'vue', 'html', 'css', 'javascript', 'typescript'],
+      baseMatch: 85
+    },
+    {
+      title: 'Backend Developer',
+      keywords: ['node', 'express', 'django', 'flask', 'java', 'python', 'php'],
+      baseMatch: 85
+    },
+    {
+      title: 'Full Stack Developer',
+      keywords: ['react', 'node', 'express', 'mongodb', 'javascript', 'html', 'css'],
+      baseMatch: 90
+    },
+    {
+      title: 'Data Scientist',
+      keywords: ['python', 'pandas', 'numpy', 'scikit-learn', 'tensorflow', 'machine learning'],
+      baseMatch: 85
+    },
+    {
+      title: 'DevOps Engineer',
+      keywords: ['docker', 'kubernetes', 'aws', 'azure', 'jenkins', 'git'],
+      baseMatch: 80
+    },
+    {
+      title: 'Mobile Developer',
+      keywords: ['react native', 'flutter', 'swift', 'kotlin', 'javascript'],
+      baseMatch: 80
+    },
+    {
+      title: 'Cloud Architect',
+      keywords: ['aws', 'azure', 'gcp', 'kubernetes', 'docker', 'terraform'],
+      baseMatch: 85
+    },
+    {
+      title: 'QA Engineer',
+      keywords: ['jest', 'mocha', 'pytest', 'testing', 'automation', 'selenium'],
+      baseMatch: 75
+    }
+  ];
+  
+  // Calculate match score for each job
+  for (const job of jobProfiles) {
+    const matchedKeywords = job.keywords.filter(kw => 
+      skillsLower.some(s => s.includes(kw) || kw.includes(s))
+    );
+    
+    const matchPercentage = Math.round((matchedKeywords.length / job.keywords.length) * 100);
+    const finalMatch = Math.round((job.baseMatch * matchPercentage) / 100);
+    
+    if (finalMatch >= 50) {
+      jobMatches.push({
+        title: job.title,
+        match: Math.min(95, finalMatch)
+      });
+    }
+  }
+  
+  // Sort by match score and return top 5
+  return jobMatches.sort((a, b) => b.match - a.match).slice(0, 5);
+}
+
+// Helper function to generate suggestions
+function generateSuggestions(textLower, skills, experience) {
+  const suggestions = [];
+  
+  if (skills.length < 5) {
+    suggestions.push('Add more technical skills to improve ATS compatibility');
+  }
+  
+  if (!textLower.includes('project')) {
+    suggestions.push('Include detailed project descriptions with technologies used');
+  }
+  
+  if (!textLower.includes('achievement') && !textLower.includes('improved') && !textLower.includes('increased')) {
+    suggestions.push('Add quantifiable achievements (e.g., "Improved performance by 40%")');
+  }
+  
+  if (!textLower.includes('github') && !textLower.includes('portfolio') && !textLower.includes('linkedin')) {
+    suggestions.push('Include links to your GitHub profile or portfolio website');
+  }
+  
+  if (!textLower.includes('certification') && !textLower.includes('award')) {
+    suggestions.push('Add relevant certifications or awards to strengthen your profile');
+  }
+  
+  if (experience === 'Entry Level' && !textLower.includes('internship') && !textLower.includes('freelance')) {
+    suggestions.push('Consider adding internship or freelance projects to build experience');
+  }
+  
+  if (suggestions.length === 0) {
+    suggestions.push('Your resume looks great! Consider adding more specific metrics to your achievements');
+  }
+  
+  return suggestions;
+}
+
 // Helper function to generate default analysis based on filename
+
 function generateDefaultResumeAnalysis(fileName) {
   const skills = ['JavaScript', 'HTML', 'CSS', 'Git'];
   const jobMatches = [];
@@ -226,60 +486,6 @@ function generateDefaultResumeAnalysis(fileName) {
     skillCategories: categorizeSkills([...new Set(skills)]),
     enhanced: false
   };
-}
-
-// Helper function to enhance analysis with actual content
-function enhanceAnalysisWithContent(defaultAnalysis, resumeText) {
-  const enhanced = { ...defaultAnalysis, enhanced: true };
-  
-  // Detect additional skills from content
-  const skillKeywords = {
-    'react': 'React', 'angular': 'Angular', 'vue': 'Vue.js',
-    'node': 'Node.js', 'express': 'Express.js', 'django': 'Django',
-    'python': 'Python', 'java': 'Java', 'javascript': 'JavaScript',
-    'typescript': 'TypeScript', 'php': 'PHP', 'c++': 'C++',
-    'mysql': 'MySQL', 'postgresql': 'PostgreSQL', 'mongodb': 'MongoDB',
-    'aws': 'AWS', 'azure': 'Azure', 'docker': 'Docker',
-    'kubernetes': 'Kubernetes', 'redis': 'Redis', 'graphql': 'GraphQL'
-  };
-  
-  const detectedSkills = [...enhanced.skills];
-  for (const [keyword, skill] of Object.entries(skillKeywords)) {
-    if (resumeText.includes(keyword) && !detectedSkills.includes(skill)) {
-      detectedSkills.push(skill);
-    }
-  }
-  
-  enhanced.skills = detectedSkills.slice(0, 12); // Limit to 12 skills
-  enhanced.skillCategories = categorizeSkills(enhanced.skills);
-  
-  // Enhance experience detection
-  const experiencePatterns = [
-    /(\d+)\+?\s*(years?|yrs?)\s*(of)?\s*experience/i,
-    /experience\s*:?\s*(\d+)\+?\s*(years?|yrs?)/i
-  ];
-  
-  for (const pattern of experiencePatterns) {
-    const match = resumeText.match(pattern);
-    if (match) {
-      const years = parseInt(match[1]);
-      if (years <= 2) enhanced.experience = '0-2 years';
-      else if (years <= 5) enhanced.experience = '2-5 years';
-      else if (years <= 10) enhanced.experience = '5-10 years';
-      else enhanced.experience = '10+ years';
-      break;
-    }
-  }
-  
-  // Enhance ATS score based on content
-  let atsBonus = 0;
-  if (resumeText.includes('project')) atsBonus += 5;
-  if (resumeText.includes('github') || resumeText.includes('portfolio')) atsBonus += 5;
-  if (resumeText.includes('certification')) atsBonus += 3;
-  
-  enhanced.atsScore = Math.min(95, enhanced.atsScore + atsBonus);
-  
-  return enhanced;
 }
 
 // Helper function to categorize skills

@@ -1832,12 +1832,13 @@ async function loadInterviewHistory() {
             
             return `
               <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;position:relative;overflow:hidden;">
-                <!-- Interview number badge -->
-                <div style="position:absolute;top:1rem;right:1rem;background:var(--primary-soft);color:var(--primary);padding:0.25rem 0.75rem;border-radius:var(--radius-full);font-size:0.8rem;font-weight:600;">
-                  Interview #${interviews.length - index}
-                </div>
-                
-                <div style="display:grid;grid-template-columns:auto 1fr auto;gap:1.5rem;align-items:center;">
+                <div style="display:grid;grid-template-columns:auto auto 1fr auto;gap:1.5rem;align-items:center;">
+                  <!-- Interview Number Badge (Left Side) -->
+                  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--primary-soft);color:var(--primary);padding:1rem;border-radius:var(--radius-md);min-width:70px;text-align:center;">
+                    <div style="font-size:0.75rem;font-weight:600;color:var(--text-muted);margin-bottom:0.25rem;">INTERVIEW</div>
+                    <div style="font-size:1.8rem;font-weight:800;color:var(--primary);">#${interviews.length - index}</div>
+                  </div>
+                  
                   <!-- Score Circle -->
                   <div style="position:relative;width:80px;height:80px;">
                     <svg width="80" height="80" style="transform:rotate(-90deg);">
