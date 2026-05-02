@@ -1103,27 +1103,40 @@ async function speakClosingMessage() {
 async function submitInterview() {
   const totalDuration = Math.floor((Date.now() - interviewState.startTime) / 1000);
   
-  const response = await fetch(`${API_URL}/interview/submit`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getAuthToken()}`
-    },
-    body: JSON.stringify({
-      answers: interviewState.answers,
-      duration: totalDuration,
-      settings: interviewState.settings,
-      totalQuestions: interviewState.questions.length,
-      resumeAnalysis: interviewState.resumeAnalysis
-    })
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to submit interview');
+  try {
+    const response = await fetch(`${API_URL}/interview/submit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getAuthToken()}`
+      },
+      body: JSON.stringify({
+        answers: interviewState.answers,
+        duration: totalDuration,
+        settings: interviewState.settings,
+        totalQuestions: interviewState.questions.length,
+        resumeAnalysis: interviewState.resumeAnalysis
+      })
+    });
+    
+    if (!response.ok) {
+      console.error('Submit interview response not ok:', response.status);
+      throw new Error(`Failed to submit interview: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (!data.success || !data.data) {
+      console.error('Invalid response structure:', data);
+      throw new Error('Invalid response from server');
+    }
+    
+    return data.data;
+  } catch (error) {
+    console.error('Submit interview error:', error);
+    // Return local calculation as fallback
+    return calculateLocalResults();
   }
-  
-  const data = await response.json();
-  return data.data;
 }
 
 function calculateLocalResults() {
@@ -1249,37 +1262,75 @@ function generateRecommendations(techScore) {
 
 // ===== DISPLAY RESULTS =====
 function displayResults(results) {
-  // Update main score
-  document.getElementById('finalScore').textContent = results.overallScore;
+  // Ensure we have valid results object
+  if (!results) {
+    console.error('No results provided to displayResults');
+    return;
+  }
+  
+  // Extract scores with defaults
+  const overallScore = results.overallScore || 0;
+  const communicationScore = results.communicationScore || 0;
+  const technicalScore = results.technicalScore || 0;
+  const professionalismScore = results.professionalismScore || 0;
+  const avgResponseTime = results.avgResponseTime || 0;
+  const completionRate = results.completionRate || 0;
+  const answeredQuestions = results.answeredQuestions || 0;
+  const skippedQuestions = results.skippedQuestions || 0;
+  const passed = results.passed !== undefined ? results.passed : overallScore >= 60;
+  const qualifyingMark = results.qualifyingMark || 60;
+  const feedback = results.feedback || {};
+  
+  // Update main score display
+  const finalScoreEl = document.getElementById('finalScore');
+  if (finalScoreEl) {
+    finalScoreEl.textContent = overallScore;
+  }
   
   // Update individual scores
-  document.getElementById('communicationScore').textContent = results.communicationScore;
-  document.getElementById('technicalScore').textContent = results.technicalScore;
-  document.getElementById('professionalismScore').textContent = results.professionalismScore;
-  document.getElementById('responseTime').textContent = `${results.avgResponseTime}s`;
+  const commScoreEl = document.getElementById('communicationScore');
+  if (commScoreEl) commScoreEl.textContent = communicationScore;
+  
+  const techScoreEl = document.getElementById('technicalScore');
+  if (techScoreEl) techScoreEl.textContent = technicalScore;
+  
+  const profScoreEl = document.getElementById('professionalismScore');
+  if (profScoreEl) profScoreEl.textContent = professionalismScore;
+  
+  const responseTimeEl = document.getElementById('responseTime');
+  if (responseTimeEl) responseTimeEl.textContent = `${avgResponseTime}s`;
   
   // Update statistics
-  const totalQuestions = interviewState.questions.length;
-  document.getElementById('totalQuestions').textContent = totalQuestions;
-  document.getElementById('answeredQuestions').textContent = results.answeredQuestions;
-  document.getElementById('skippedQuestions').textContent = results.skippedQuestions;
-  document.getElementById('completionRate').textContent = `${results.completionRate}%`;
+  const totalQuestions = interviewState.questions.length || 1;
+  const totalQuestionsEl = document.getElementById('totalQuestions');
+  if (totalQuestionsEl) totalQuestionsEl.textContent = totalQuestions;
+  
+  const answeredEl = document.getElementById('answeredQuestions');
+  if (answeredEl) answeredEl.textContent = answeredQuestions;
+  
+  const skippedEl = document.getElementById('skippedQuestions');
+  if (skippedEl) skippedEl.textContent = skippedQuestions;
+  
+  const completionRateEl = document.getElementById('completionRate');
+  if (completionRateEl) completionRateEl.textContent = `${completionRate}%`;
   
   // Update score circle animation
-  const circumference = 2 * Math.PI * 85; // radius = 85
-  const offset = circumference - (results.overallScore / 100) * circumference;
   const scoreCircle = document.getElementById('scoreCircle');
   if (scoreCircle) {
+    const circumference = 2 * Math.PI * 85; // radius = 85
+    const offset = circumference - (overallScore / 100) * circumference;
+    
+    // Set the stroke-dashoffset to animate the circle
     scoreCircle.setAttribute('stroke-dashoffset', offset);
     
     // Update circle color based on score
-    if (results.overallScore >= 80) {
-      scoreCircle.setAttribute('stroke', 'var(--success)');
-    } else if (results.overallScore >= 60) {
-      scoreCircle.setAttribute('stroke', 'var(--primary)');
-    } else {
-      scoreCircle.setAttribute('stroke', 'var(--danger)');
+    let strokeColor = 'var(--danger)';
+    if (overallScore >= 80) {
+      strokeColor = 'var(--success)';
+    } else if (overallScore >= 60) {
+      strokeColor = 'var(--primary)';
     }
+    scoreCircle.setAttribute('stroke', strokeColor);
   }
   
   // Update score bars with animation
@@ -1288,19 +1339,13 @@ function displayResults(results) {
     const technicalBar = document.querySelector('.metric-card.technical .score-fill');
     const professionalismBar = document.querySelector('.metric-card.professionalism .score-fill');
     
-    if (communicationBar) communicationBar.style.width = `${results.communicationScore}%`;
-    if (technicalBar) technicalBar.style.width = `${results.technicalScore}%`;
-    if (professionalismBar) professionalismBar.style.width = `${results.professionalismScore}%`;
+    if (communicationBar) communicationBar.style.width = `${communicationScore}%`;
+    if (technicalBar) technicalBar.style.width = `${technicalScore}%`;
+    if (professionalismBar) professionalismBar.style.width = `${professionalismScore}%`;
   }, 500);
-  
-  // Update status based on performance
-  const qualifyingMark = results.qualifyingMark || 60;
-  const passed = results.passed !== undefined ? results.passed : results.overallScore >= qualifyingMark;
   
   // Update status badge
   const statusBadge = document.getElementById('resultsStatusBadge');
-  const scoreStatus = document.getElementById('scoreStatus');
-  
   if (statusBadge) {
     if (passed) {
       statusBadge.innerHTML = '<i class="fas fa-check-circle"></i><span>Interview Passed</span>';
@@ -1316,30 +1361,31 @@ function displayResults(results) {
   }
   
   // Update score status section
+  const scoreStatus = document.getElementById('scoreStatus');
   if (scoreStatus) {
     const statusIcon = scoreStatus.querySelector('.status-icon i');
     const statusTitle = scoreStatus.querySelector('.status-text h3');
     const statusDesc = scoreStatus.querySelector('.status-text p');
     
-    if (results.overallScore >= 90) {
+    if (overallScore >= 90) {
       statusIcon.className = 'fas fa-trophy';
       statusTitle.textContent = 'Outstanding Performance';
       statusDesc.textContent = 'Exceptional skills demonstrated across all areas';
       scoreStatus.style.background = 'var(--success-light)';
       scoreStatus.style.borderLeftColor = 'var(--success)';
-    } else if (results.overallScore >= 80) {
+    } else if (overallScore >= 80) {
       statusIcon.className = 'fas fa-medal';
       statusTitle.textContent = 'Excellent Performance';
       statusDesc.textContent = 'Strong skills demonstrated across all areas';
       scoreStatus.style.background = 'var(--success-light)';
       scoreStatus.style.borderLeftColor = 'var(--success)';
-    } else if (results.overallScore >= 70) {
+    } else if (overallScore >= 70) {
       statusIcon.className = 'fas fa-thumbs-up';
       statusTitle.textContent = 'Good Performance';
       statusDesc.textContent = 'Solid foundation with room for improvement';
       scoreStatus.style.background = 'var(--primary-soft)';
       scoreStatus.style.borderLeftColor = 'var(--primary)';
-    } else if (results.overallScore >= 60) {
+    } else if (overallScore >= 60) {
       statusIcon.className = 'fas fa-check';
       statusTitle.textContent = 'Satisfactory Performance';
       statusDesc.textContent = 'Meets basic requirements, focus on key areas';
@@ -1357,11 +1403,10 @@ function displayResults(results) {
   // Update timing indicator
   const timingIndicator = document.querySelector('.timing-indicator');
   if (timingIndicator) {
-    const avgTime = results.avgResponseTime;
-    if (avgTime >= 30 && avgTime <= 120) {
+    if (avgResponseTime >= 30 && avgResponseTime <= 120) {
       timingIndicator.innerHTML = '<i class="fas fa-check-circle"></i><span>Optimal</span>';
       timingIndicator.style.color = 'var(--success)';
-    } else if (avgTime < 30) {
+    } else if (avgResponseTime < 30) {
       timingIndicator.innerHTML = '<i class="fas fa-clock"></i><span>Too Fast</span>';
       timingIndicator.style.color = 'var(--warning)';
     } else {
@@ -1371,28 +1416,28 @@ function displayResults(results) {
   }
   
   // Update feedback sections
-  if (results.feedback) {
+  if (feedback) {
     // Strengths
     const strengthsEl = document.getElementById('strengthsFeedback');
-    if (strengthsEl && results.feedback.strengths) {
+    if (strengthsEl && feedback.strengths && feedback.strengths.length > 0) {
       strengthsEl.innerHTML = '<ul>' + 
-        results.feedback.strengths.map(strength => `<li>${strength}</li>`).join('') + 
+        feedback.strengths.map(strength => `<li>${strength}</li>`).join('') + 
         '</ul>';
     }
     
     // Improvements
     const improvementsEl = document.getElementById('improvementsFeedback');
-    if (improvementsEl && results.feedback.improvements) {
+    if (improvementsEl && feedback.improvements && feedback.improvements.length > 0) {
       improvementsEl.innerHTML = '<ul>' + 
-        results.feedback.improvements.map(improvement => `<li>${improvement}</li>`).join('') + 
+        feedback.improvements.map(improvement => `<li>${improvement}</li>`).join('') + 
         '</ul>';
     }
     
     // Recommendations
     const recommendationsEl = document.getElementById('recommendationsFeedback');
-    if (recommendationsEl && results.feedback.recommendations) {
+    if (recommendationsEl && feedback.recommendations && feedback.recommendations.length > 0) {
       recommendationsEl.innerHTML = '<ul>' + 
-        results.feedback.recommendations.map(rec => `<li>${rec}</li>`).join('') + 
+        feedback.recommendations.map(rec => `<li>${rec}</li>`).join('') + 
         '</ul>';
     }
   }
