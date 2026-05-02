@@ -351,31 +351,135 @@ async function toggleCamera() {
     
     const preview = document.getElementById('cameraPreview') || document.getElementById('userVideo');
     const overlay = document.getElementById('cameraOverlay');
-    if (preview) preview.srcObject = null;
-    if (overlay) overlay.classList.remove('hidden');
+    if (preview) {
+      preview.srcObject = null;
+      preview.style.display = 'none';
+    }
+    if (overlay) {
+      overlay.style.display = 'flex';
+      overlay.classList.remove('hidden');
+    }
     
     document.querySelectorAll('#toggleCamera, #toggleCameraInterview').forEach(btn => {
       btn.classList.remove('active');
       btn.querySelector('i').className = 'fas fa-video-slash';
     });
+    
+    console.log('Camera disabled');
   } else {
     // Turn on camera
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      // Request camera permissions first
+      const constraints = {
+        video: {
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 },
+          facingMode: 'user',
+          frameRate: { ideal: 30, min: 15 }
+        }
+      };
+      
+      console.log('Requesting camera access with constraints:', constraints);
+      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       interviewState.cameraStream = stream;
       interviewState.cameraEnabled = true;
       
+      console.log('Camera stream obtained:', stream);
+      console.log('Video tracks:', stream.getVideoTracks());
+      
       const preview = document.getElementById('cameraPreview') || document.getElementById('userVideo');
       const overlay = document.getElementById('cameraOverlay');
-      if (preview) preview.srcObject = stream;
-      if (overlay) overlay.classList.add('hidden');
+      
+      if (preview) {
+        // Clear any existing source
+        preview.srcObject = null;
+        
+        // Set new stream
+        preview.srcObject = stream;
+        preview.style.display = 'block';
+        
+        // Ensure video plays and handle loading
+        preview.onloadedmetadata = () => {
+          console.log('Video metadata loaded, attempting to play');
+          preview.play().then(() => {
+            console.log('Video playing successfully');
+          }).catch(e => {
+            console.error('Video play error:', e);
+            showToast('Error starting video playback', 'error');
+          });
+        };
+        
+        // Handle video errors
+        preview.onerror = (e) => {
+          console.error('Video element error:', e);
+          showToast('Video display error', 'error');
+        };
+        
+        // Force load if metadata doesn't trigger
+        setTimeout(() => {
+          if (preview.readyState === 0) {
+            console.log('Forcing video load');
+            preview.load();
+          }
+        }, 1000);
+      }
+      
+      if (overlay) {
+        overlay.style.display = 'none';
+        overlay.classList.add('hidden');
+      }
       
       document.querySelectorAll('#toggleCamera, #toggleCameraInterview').forEach(btn => {
         btn.classList.add('active');
         btn.querySelector('i').className = 'fas fa-video';
       });
+      
+      console.log('Camera enabled successfully');
+      showToast('Camera enabled', 'success');
+      
     } catch (error) {
-      showToast('Camera access denied', 'error');
+      console.error('Camera error:', error);
+      
+      let errorMessage = 'Camera access denied. ';
+      
+      if (error.name === 'NotAllowedError') {
+        errorMessage += 'Please allow camera access in your browser settings and refresh the page.';
+      } else if (error.name === 'NotFoundError') {
+        errorMessage += 'No camera found. Please connect a camera and try again.';
+      } else if (error.name === 'NotReadableError') {
+        errorMessage += 'Camera is being used by another application. Please close other apps and try again.';
+      } else if (error.name === 'OverconstrainedError') {
+        errorMessage += 'Camera does not support the required settings. Trying with basic settings...';
+        
+        // Retry with basic constraints
+        try {
+          const basicStream = await navigator.mediaDevices.getUserMedia({ video: true });
+          interviewState.cameraStream = basicStream;
+          interviewState.cameraEnabled = true;
+          
+          const preview = document.getElementById('cameraPreview') || document.getElementById('userVideo');
+          if (preview) {
+            preview.srcObject = basicStream;
+            preview.style.display = 'block';
+            preview.play().catch(e => console.error('Basic video play error:', e));
+          }
+          
+          showToast('Camera enabled with basic settings', 'success');
+          return;
+        } catch (basicError) {
+          console.error('Basic camera access also failed:', basicError);
+          errorMessage = 'Camera access failed completely. Please check your camera and browser permissions.';
+        }
+      } else {
+        errorMessage += 'Unknown camera error. Please try refreshing the page.';
+      }
+      
+      showToast(errorMessage, 'error');
+      
+      // Update check status
+      updateCheckItem('checkCamera', 'error', 'Camera Access - Failed');
+      checkStartButtonState();
     }
   }
 }
@@ -490,42 +594,77 @@ async function analyzeResume(file) {
 }
 
 function generateDefaultQuestions() {
-  // Fallback questions if API fails
+  // Enhanced technical questions based on common resume skills
   return [
     {
       id: 1,
-      text: "Tell me about yourself and your background.",
+      text: "Tell me about yourself and walk me through your technical background and experience.",
       category: "Introduction",
       type: "behavioral",
       expectedDuration: 120
     },
     {
       id: 2,
-      text: "What motivated you to apply for this position?",
-      category: "Motivation",
-      type: "behavioral",
-      expectedDuration: 90
+      text: "What programming languages are you most proficient in? Can you explain a recent project where you used Java?",
+      category: "Java Programming",
+      type: "technical",
+      expectedDuration: 150
     },
     {
       id: 3,
-      text: "Describe a challenging project you worked on.",
-      category: "Experience",
-      type: "behavioral",
+      text: "Explain the difference between ArrayList and LinkedList in Java. When would you choose one over the other?",
+      category: "Java Collections",
+      type: "technical",
       expectedDuration: 180
     },
     {
       id: 4,
-      text: "What are your greatest strengths?",
-      category: "Self Assessment",
+      text: "Describe your experience with databases. Can you explain the difference between INNER JOIN and LEFT JOIN in MySQL?",
+      category: "MySQL/Database",
+      type: "technical",
+      expectedDuration: 180
+    },
+    {
+      id: 5,
+      text: "Tell me about a challenging technical problem you solved in one of your projects. What was your approach and what technologies did you use?",
+      category: "Problem Solving",
+      type: "behavioral",
+      expectedDuration: 200
+    },
+    {
+      id: 6,
+      text: "How do you ensure code quality in your projects? What testing strategies and tools do you use?",
+      category: "Code Quality",
+      type: "technical",
+      expectedDuration: 150
+    },
+    {
+      id: 7,
+      text: "Explain the concept of object-oriented programming. Can you give me an example of inheritance or polymorphism from your experience?",
+      category: "Programming Concepts",
+      type: "technical",
+      expectedDuration: 150
+    },
+    {
+      id: 8,
+      text: "Describe your experience working in a team environment. How do you handle code reviews and version control with Git?",
+      category: "Teamwork",
       type: "behavioral",
       expectedDuration: 120
     },
     {
-      id: 5,
-      text: "Where do you see yourself in 5 years?",
+      id: 9,
+      text: "What is your approach to learning new technologies? Can you tell me about a recent technology or framework you learned?",
+      category: "Learning & Growth",
+      type: "behavioral",
+      expectedDuration: 120
+    },
+    {
+      id: 10,
+      text: "Where do you see yourself in your technical career in the next 3-5 years? What technologies do you want to master?",
       category: "Career Goals",
       type: "behavioral",
-      expectedDuration: 90
+      expectedDuration: 120
     }
   ];
 }
@@ -1076,51 +1215,185 @@ function generateRecommendations(techScore) {
 
 // ===== DISPLAY RESULTS =====
 function displayResults(results) {
-  // Update scores
+  // Update main score
   document.getElementById('finalScore').textContent = results.overallScore;
+  
+  // Update individual scores
   document.getElementById('communicationScore').textContent = results.communicationScore;
   document.getElementById('technicalScore').textContent = results.technicalScore;
   document.getElementById('professionalismScore').textContent = results.professionalismScore;
   document.getElementById('responseTime').textContent = `${results.avgResponseTime}s`;
   
-  // Update score circle
-  const circumference = 2 * Math.PI * 90;
+  // Update statistics
+  const totalQuestions = interviewState.questions.length;
+  document.getElementById('totalQuestions').textContent = totalQuestions;
+  document.getElementById('answeredQuestions').textContent = results.answeredQuestions;
+  document.getElementById('skippedQuestions').textContent = results.skippedQuestions;
+  document.getElementById('completionRate').textContent = `${results.completionRate}%`;
+  
+  // Update score circle animation
+  const circumference = 2 * Math.PI * 85; // radius = 85
   const offset = circumference - (results.overallScore / 100) * circumference;
-  document.getElementById('scoreCircle')?.setAttribute('stroke-dashoffset', offset);
-
-  // Show pass/fail badge
-  const scoreEl = document.getElementById('finalScore');
-  if (scoreEl) {
-    const qualifyingMark = results.qualifyingMark || 60;
-    const passed = results.passed !== undefined ? results.passed : results.overallScore >= qualifyingMark;
-    const badge = document.createElement('div');
-    badge.style.cssText = `
-      margin-top: 8px;
-      padding: 4px 14px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      display: inline-block;
-      background: ${passed ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)'};
-      color: ${passed ? '#10b981' : '#ef4444'};
-      border: 1px solid ${passed ? '#10b981' : '#ef4444'};
-    `;
-    badge.textContent = passed ? `✅ Passed (≥${qualifyingMark}%)` : `❌ Below Qualifying Mark (${qualifyingMark}%)`;
-    // Remove old badge if exists
-    const oldBadge = document.getElementById('passBadge');
-    if (oldBadge) oldBadge.remove();
-    badge.id = 'passBadge';
-    scoreEl.parentElement.appendChild(badge);
+  const scoreCircle = document.getElementById('scoreCircle');
+  if (scoreCircle) {
+    scoreCircle.setAttribute('stroke-dashoffset', offset);
+    
+    // Update circle color based on score
+    if (results.overallScore >= 80) {
+      scoreCircle.setAttribute('stroke', 'var(--success)');
+    } else if (results.overallScore >= 60) {
+      scoreCircle.setAttribute('stroke', 'var(--primary)');
+    } else {
+      scoreCircle.setAttribute('stroke', 'var(--danger)');
+    }
   }
   
-  // Update feedback
-  const feedbackEl = document.getElementById('aiFeedback');
-  if (feedbackEl && results.feedback) {
-    feedbackEl.innerHTML = `
-      <p><strong>Strengths:</strong> ${results.feedback.strengths.join('. ')}.</p>
-      <p><strong>Areas for Improvement:</strong> ${results.feedback.improvements.join('. ')}.</p>
-      <p><strong>Recommendations:</strong> ${results.feedback.recommendations.join('. ')}.</p>
+  // Update score bars with animation
+  setTimeout(() => {
+    const communicationBar = document.querySelector('.metric-card.communication .score-fill');
+    const technicalBar = document.querySelector('.metric-card.technical .score-fill');
+    const professionalismBar = document.querySelector('.metric-card.professionalism .score-fill');
+    
+    if (communicationBar) communicationBar.style.width = `${results.communicationScore}%`;
+    if (technicalBar) technicalBar.style.width = `${results.technicalScore}%`;
+    if (professionalismBar) professionalismBar.style.width = `${results.professionalismScore}%`;
+  }, 500);
+  
+  // Update status based on performance
+  const qualifyingMark = results.qualifyingMark || 60;
+  const passed = results.passed !== undefined ? results.passed : results.overallScore >= qualifyingMark;
+  
+  // Update status badge
+  const statusBadge = document.getElementById('resultsStatusBadge');
+  const scoreStatus = document.getElementById('scoreStatus');
+  
+  if (statusBadge) {
+    if (passed) {
+      statusBadge.innerHTML = '<i class="fas fa-check-circle"></i><span>Interview Passed</span>';
+      statusBadge.style.background = 'var(--success-light)';
+      statusBadge.style.color = 'var(--success)';
+      statusBadge.style.borderColor = 'var(--success)';
+    } else {
+      statusBadge.innerHTML = '<i class="fas fa-exclamation-triangle"></i><span>Below Qualifying Mark</span>';
+      statusBadge.style.background = 'var(--warning-light)';
+      statusBadge.style.color = 'var(--warning)';
+      statusBadge.style.borderColor = 'var(--warning)';
+    }
+  }
+  
+  // Update score status section
+  if (scoreStatus) {
+    const statusIcon = scoreStatus.querySelector('.status-icon i');
+    const statusTitle = scoreStatus.querySelector('.status-text h3');
+    const statusDesc = scoreStatus.querySelector('.status-text p');
+    
+    if (results.overallScore >= 90) {
+      statusIcon.className = 'fas fa-trophy';
+      statusTitle.textContent = 'Outstanding Performance';
+      statusDesc.textContent = 'Exceptional skills demonstrated across all areas';
+      scoreStatus.style.background = 'var(--success-light)';
+      scoreStatus.style.borderLeftColor = 'var(--success)';
+    } else if (results.overallScore >= 80) {
+      statusIcon.className = 'fas fa-medal';
+      statusTitle.textContent = 'Excellent Performance';
+      statusDesc.textContent = 'Strong skills demonstrated across all areas';
+      scoreStatus.style.background = 'var(--success-light)';
+      scoreStatus.style.borderLeftColor = 'var(--success)';
+    } else if (results.overallScore >= 70) {
+      statusIcon.className = 'fas fa-thumbs-up';
+      statusTitle.textContent = 'Good Performance';
+      statusDesc.textContent = 'Solid foundation with room for improvement';
+      scoreStatus.style.background = 'var(--primary-soft)';
+      scoreStatus.style.borderLeftColor = 'var(--primary)';
+    } else if (results.overallScore >= 60) {
+      statusIcon.className = 'fas fa-check';
+      statusTitle.textContent = 'Satisfactory Performance';
+      statusDesc.textContent = 'Meets basic requirements, focus on key areas';
+      scoreStatus.style.background = 'var(--warning-light)';
+      scoreStatus.style.borderLeftColor = 'var(--warning)';
+    } else {
+      statusIcon.className = 'fas fa-exclamation-circle';
+      statusTitle.textContent = 'Needs Improvement';
+      statusDesc.textContent = 'Additional practice recommended before next attempt';
+      scoreStatus.style.background = 'var(--danger-light)';
+      scoreStatus.style.borderLeftColor = 'var(--danger)';
+    }
+  }
+  
+  // Update timing indicator
+  const timingIndicator = document.querySelector('.timing-indicator');
+  if (timingIndicator) {
+    const avgTime = results.avgResponseTime;
+    if (avgTime >= 30 && avgTime <= 120) {
+      timingIndicator.innerHTML = '<i class="fas fa-check-circle"></i><span>Optimal</span>';
+      timingIndicator.style.color = 'var(--success)';
+    } else if (avgTime < 30) {
+      timingIndicator.innerHTML = '<i class="fas fa-clock"></i><span>Too Fast</span>';
+      timingIndicator.style.color = 'var(--warning)';
+    } else {
+      timingIndicator.innerHTML = '<i class="fas fa-hourglass-half"></i><span>Too Slow</span>';
+      timingIndicator.style.color = 'var(--warning)';
+    }
+  }
+  
+  // Update feedback sections
+  if (results.feedback) {
+    // Strengths
+    const strengthsEl = document.getElementById('strengthsFeedback');
+    if (strengthsEl && results.feedback.strengths) {
+      strengthsEl.innerHTML = '<ul>' + 
+        results.feedback.strengths.map(strength => `<li>${strength}</li>`).join('') + 
+        '</ul>';
+    }
+    
+    // Improvements
+    const improvementsEl = document.getElementById('improvementsFeedback');
+    if (improvementsEl && results.feedback.improvements) {
+      improvementsEl.innerHTML = '<ul>' + 
+        results.feedback.improvements.map(improvement => `<li>${improvement}</li>`).join('') + 
+        '</ul>';
+    }
+    
+    // Recommendations
+    const recommendationsEl = document.getElementById('recommendationsFeedback');
+    if (recommendationsEl && results.feedback.recommendations) {
+      recommendationsEl.innerHTML = '<ul>' + 
+        results.feedback.recommendations.map(rec => `<li>${rec}</li>`).join('') + 
+        '</ul>';
+    }
+  }
+  
+  // Add pass/fail indicator to main score
+  const scoreEl = document.getElementById('finalScore');
+  if (scoreEl) {
+    // Remove old indicator if exists
+    const oldIndicator = document.getElementById('passFailIndicator');
+    if (oldIndicator) oldIndicator.remove();
+    
+    const indicator = document.createElement('div');
+    indicator.id = 'passFailIndicator';
+    indicator.style.cssText = `
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-weight: bold;
+      background: ${passed ? 'var(--success)' : 'var(--danger)'};
+      color: white;
+      border: 3px solid var(--bg-card);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     `;
+    indicator.innerHTML = passed ? '✓' : '✗';
+    indicator.title = passed ? `Passed (≥${qualifyingMark}%)` : `Failed (<${qualifyingMark}%)`;
+    
+    scoreEl.parentElement.style.position = 'relative';
+    scoreEl.parentElement.appendChild(indicator);
   }
 }
 

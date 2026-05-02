@@ -280,90 +280,253 @@
 
     <div class="interview-content results-content">
       <div class="results-container">
+        
+        <!-- Results Header -->
         <div class="results-header">
-          <div class="results-icon">
-            <i class="fas fa-trophy"></i>
+          <div class="results-icon-container">
+            <div class="results-icon">
+              <i class="fas fa-trophy"></i>
+            </div>
+            <div class="results-status-badge" id="resultsStatusBadge">
+              <i class="fas fa-check-circle"></i>
+              <span>Interview Completed</span>
+            </div>
           </div>
-          <h1 class="results-title">Interview Complete!</h1>
-          <p class="results-subtitle">Here's how you performed</p>
+          <h1 class="results-title">Interview Analysis Complete</h1>
+          <p class="results-subtitle">Here's your comprehensive performance report</p>
         </div>
 
-        <div class="results-score">
-          <div class="score-circle">
-            <svg viewBox="0 0 200 200">
-              <circle cx="100" cy="100" r="90" fill="none" stroke="var(--border)" stroke-width="12"/>
-              <circle id="scoreCircle" cx="100" cy="100" r="90" fill="none" stroke="var(--primary)" stroke-width="12"
-                      stroke-dasharray="565.48" stroke-dashoffset="141.37" stroke-linecap="round"
-                      transform="rotate(-90 100 100)" style="transition:stroke-dashoffset 1s ease"/>
-            </svg>
-            <div class="score-value">
-              <span class="score-number" id="finalScore">85</span>
-              <span class="score-label">Overall Score</span>
+        <!-- Main Score Display -->
+        <div class="results-main-score">
+          <div class="score-display">
+            <div class="score-circle-container">
+              <svg class="score-circle-svg" viewBox="0 0 200 200">
+                <circle cx="100" cy="100" r="85" fill="none" stroke="var(--border)" stroke-width="8"/>
+                <circle id="scoreCircle" cx="100" cy="100" r="85" fill="none" stroke="var(--primary)" stroke-width="8"
+                        stroke-dasharray="534.07" stroke-dashoffset="133.52" stroke-linecap="round"
+                        transform="rotate(-90 100 100)" style="transition:stroke-dashoffset 2s ease"/>
+              </svg>
+              <div class="score-content">
+                <div class="score-number" id="finalScore">85</div>
+                <div class="score-label">Overall Score</div>
+                <div class="score-percentage">%</div>
+              </div>
             </div>
-          </div>
-        </div>
-
-        <div class="results-metrics">
-          <div class="metric-card">
-            <div class="metric-icon" style="background:var(--primary-soft);color:var(--primary);">
-              <i class="fas fa-comments"></i>
-            </div>
-            <div class="metric-content">
-              <div class="metric-value" id="communicationScore">88</div>
-              <div class="metric-label">Communication</div>
-            </div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-icon" style="background:var(--secondary-soft);color:var(--secondary);">
-              <i class="fas fa-code"></i>
-            </div>
-            <div class="metric-content">
-              <div class="metric-value" id="technicalScore">82</div>
-              <div class="metric-label">Technical Skills</div>
-            </div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-icon" style="background:var(--success-light);color:var(--success);">
-              <i class="fas fa-user-tie"></i>
-            </div>
-            <div class="metric-content">
-              <div class="metric-value" id="professionalismScore">90</div>
-              <div class="metric-label">Professionalism</div>
-            </div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-icon" style="background:var(--accent-soft);color:var(--accent);">
-              <i class="fas fa-clock"></i>
-            </div>
-            <div class="metric-content">
-              <div class="metric-value" id="responseTime">45s</div>
-              <div class="metric-label">Avg Response Time</div>
+            <div class="score-details">
+              <div class="score-status" id="scoreStatus">
+                <div class="status-icon">
+                  <i class="fas fa-medal"></i>
+                </div>
+                <div class="status-text">
+                  <h3>Excellent Performance</h3>
+                  <p>You've demonstrated strong skills across all areas</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="results-feedback">
-          <h3 class="feedback-title">
-            <i class="fas fa-brain"></i> AI Feedback
-          </h3>
-          <div class="feedback-content" id="aiFeedback">
-            <p><strong>Strengths:</strong> Excellent completion rate - you answered most questions. Good communication and presentation skills.</p>
-            <p><strong>Areas for Improvement:</strong> Try to answer all questions instead of skipping. Provide more detailed answers - take your time.</p>
-            <p><strong>Recommendations:</strong> Review technical concepts related to your field. Practice behavioral questions using the STAR method. Record yourself to improve delivery and confidence.</p>
+        <!-- Performance Breakdown -->
+        <div class="performance-breakdown">
+          <h2 class="section-title">
+            <i class="fas fa-chart-bar"></i>
+            Performance Breakdown
+          </h2>
+          <div class="metrics-grid">
+            <div class="metric-card communication">
+              <div class="metric-header">
+                <div class="metric-icon">
+                  <i class="fas fa-comments"></i>
+                </div>
+                <div class="metric-info">
+                  <h4>Communication</h4>
+                  <p>Clarity and articulation</p>
+                </div>
+              </div>
+              <div class="metric-score">
+                <span class="score-value" id="communicationScore">88</span>
+                <div class="score-bar">
+                  <div class="score-fill" style="width: 88%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="metric-card technical">
+              <div class="metric-header">
+                <div class="metric-icon">
+                  <i class="fas fa-code"></i>
+                </div>
+                <div class="metric-info">
+                  <h4>Technical Skills</h4>
+                  <p>Knowledge and expertise</p>
+                </div>
+              </div>
+              <div class="metric-score">
+                <span class="score-value" id="technicalScore">82</span>
+                <div class="score-bar">
+                  <div class="score-fill" style="width: 82%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="metric-card professionalism">
+              <div class="metric-header">
+                <div class="metric-icon">
+                  <i class="fas fa-user-tie"></i>
+                </div>
+                <div class="metric-info">
+                  <h4>Professionalism</h4>
+                  <p>Presentation and demeanor</p>
+                </div>
+              </div>
+              <div class="metric-score">
+                <span class="score-value" id="professionalismScore">90</span>
+                <div class="score-bar">
+                  <div class="score-fill" style="width: 90%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="metric-card timing">
+              <div class="metric-header">
+                <div class="metric-icon">
+                  <i class="fas fa-clock"></i>
+                </div>
+                <div class="metric-info">
+                  <h4>Response Time</h4>
+                  <p>Average per question</p>
+                </div>
+              </div>
+              <div class="metric-score">
+                <span class="score-value" id="responseTime">45s</span>
+                <div class="timing-indicator">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Optimal</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
+        <!-- Interview Statistics -->
+        <div class="interview-statistics">
+          <h2 class="section-title">
+            <i class="fas fa-analytics"></i>
+            Interview Statistics
+          </h2>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-icon">
+                <i class="fas fa-question-circle"></i>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number" id="totalQuestions">10</div>
+                <div class="stat-label">Total Questions</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon">
+                <i class="fas fa-check"></i>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number" id="answeredQuestions">8</div>
+                <div class="stat-label">Answered</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon">
+                <i class="fas fa-forward"></i>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number" id="skippedQuestions">2</div>
+                <div class="stat-label">Skipped</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon">
+                <i class="fas fa-percentage"></i>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number" id="completionRate">80%</div>
+                <div class="stat-label">Completion Rate</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Feedback Section -->
+        <div class="ai-feedback-section">
+          <h2 class="section-title">
+            <i class="fas fa-robot"></i>
+            AI-Powered Feedback
+          </h2>
+          <div class="feedback-container">
+            <div class="feedback-category strengths">
+              <div class="feedback-header">
+                <div class="feedback-icon">
+                  <i class="fas fa-thumbs-up"></i>
+                </div>
+                <h3>Key Strengths</h3>
+              </div>
+              <div class="feedback-content" id="strengthsFeedback">
+                <ul>
+                  <li>Excellent completion rate - you answered most questions</li>
+                  <li>Strong overall performance across all categories</li>
+                  <li>Good communication and presentation skills</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="feedback-category improvements">
+              <div class="feedback-header">
+                <div class="feedback-icon">
+                  <i class="fas fa-arrow-up"></i>
+                </div>
+                <h3>Areas for Improvement</h3>
+              </div>
+              <div class="feedback-content" id="improvementsFeedback">
+                <ul>
+                  <li>Try to answer all questions instead of skipping</li>
+                  <li>Provide more detailed answers - take your time to elaborate</li>
+                  <li>Consider structuring responses using the STAR method</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="feedback-category recommendations">
+              <div class="feedback-header">
+                <div class="feedback-icon">
+                  <i class="fas fa-lightbulb"></i>
+                </div>
+                <h3>Recommendations</h3>
+              </div>
+              <div class="feedback-content" id="recommendationsFeedback">
+                <ul>
+                  <li>Review technical concepts related to your field</li>
+                  <li>Practice behavioral questions using the STAR method</li>
+                  <li>Record yourself to improve delivery and confidence</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
         <div class="results-actions">
           <button class="btn btn-outline btn-lg" id="viewDetailedReport">
-            <i class="fas fa-file-alt"></i> Detailed Report
+            <i class="fas fa-file-alt"></i>
+            <span>Download Report</span>
           </button>
           <button class="btn btn-primary btn-lg" id="retakeInterview">
-            <i class="fas fa-redo"></i> Retake Interview
+            <i class="fas fa-redo"></i>
+            <span>Retake Interview</span>
           </button>
           <button class="btn btn-secondary btn-lg" onclick="window.location.href='user-dashboard.html'">
-            <i class="fas fa-home"></i> Back to Dashboard
+            <i class="fas fa-home"></i>
+            <span>Back to Dashboard</span>
           </button>
         </div>
+
       </div>
     </div>
   </div>

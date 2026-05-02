@@ -306,61 +306,128 @@ function buildRecommendations(overall, tech) {
 function generateQuestions(difficulty = 'medium', type = 'hr') {
   const questionBank = {
     introduction: [
-      { id: 1, text: "Tell me about yourself and your background.", category: "Introduction", type: "behavioral", expectedDuration: 120, difficulty: "easy" },
-      { id: 2, text: "Walk me through your resume and highlight your key achievements.", category: "Introduction", type: "behavioral", expectedDuration: 180, difficulty: "medium" }
+      { id: 1, text: "Tell me about yourself and walk me through your technical background and experience.", category: "Introduction", type: "behavioral", expectedDuration: 120, difficulty: "easy" },
+      { id: 2, text: "Walk me through your resume and highlight your key technical achievements and projects.", category: "Introduction", type: "behavioral", expectedDuration: 180, difficulty: "medium" }
     ],
-    motivation: [
-      { id: 3, text: "What motivated you to apply for this position?", category: "Motivation", type: "behavioral", expectedDuration: 90, difficulty: "easy" },
-      { id: 4, text: "Why do you want to work for our company specifically?", category: "Motivation", type: "behavioral", expectedDuration: 120, difficulty: "medium" }
+    
+    // Java-specific questions
+    javaQuestions: [
+      { id: 3, text: "Explain the difference between abstract classes and interfaces in Java. When would you use each?", category: "Java Programming", type: "technical", expectedDuration: 150, difficulty: "medium" },
+      { id: 4, text: "What is the difference between ArrayList and LinkedList in Java? When would you choose one over the other?", category: "Java Collections", type: "technical", expectedDuration: 120, difficulty: "medium" },
+      { id: 5, text: "Explain Java's garbage collection mechanism and how you can optimize memory usage in your applications.", category: "Java Memory Management", type: "technical", expectedDuration: 180, difficulty: "hard" },
+      { id: 6, text: "What are Java Streams and how do they improve code readability? Can you give an example?", category: "Java 8+ Features", type: "technical", expectedDuration: 150, difficulty: "medium" },
+      { id: 7, text: "Explain the concept of multithreading in Java. How do you handle thread synchronization?", category: "Java Concurrency", type: "technical", expectedDuration: 200, difficulty: "hard" }
     ],
-    technical: [
-      { id: 5, text: "Explain a technical concept from your resume in simple terms.", category: "Technical", type: "technical", expectedDuration: 150, difficulty: "medium" },
-      { id: 6, text: "Describe the most complex technical problem you've solved.", category: "Technical", type: "technical", expectedDuration: 240, difficulty: "hard" },
-      { id: 7, text: "How do you approach debugging and troubleshooting?", category: "Technical", type: "technical", expectedDuration: 120, difficulty: "medium" }
+    
+    // MySQL/Database questions
+    databaseQuestions: [
+      { id: 8, text: "Explain the difference between INNER JOIN, LEFT JOIN, and RIGHT JOIN in MySQL with examples.", category: "MySQL/Database", type: "technical", expectedDuration: 150, difficulty: "medium" },
+      { id: 9, text: "What are database indexes and how do they improve query performance? What are the trade-offs?", category: "Database Optimization", type: "technical", expectedDuration: 180, difficulty: "medium" },
+      { id: 10, text: "Explain ACID properties in database transactions. Why are they important?", category: "Database Theory", type: "technical", expectedDuration: 150, difficulty: "hard" },
+      { id: 11, text: "How would you optimize a slow-running MySQL query? What tools and techniques would you use?", category: "Database Performance", type: "technical", expectedDuration: 200, difficulty: "hard" },
+      { id: 12, text: "What is database normalization? Explain the different normal forms with examples.", category: "Database Design", type: "technical", expectedDuration: 180, difficulty: "medium" }
     ],
-    problemSolving: [
-      { id: 8, text: "Describe a challenging project you worked on and how you overcame obstacles.", category: "Problem Solving", type: "behavioral", expectedDuration: 180, difficulty: "medium" },
-      { id: 9, text: "Tell me about a time when you had to make a difficult decision with limited information.", category: "Problem Solving", type: "behavioral", expectedDuration: 150, difficulty: "hard" }
+    
+    // Web Development questions
+    webDevQuestions: [
+      { id: 13, text: "Explain the difference between REST and SOAP APIs. What are the advantages of RESTful services?", category: "Web APIs", type: "technical", expectedDuration: 150, difficulty: "medium" },
+      { id: 14, text: "What is the difference between HTTP and HTTPS? How does SSL/TLS work?", category: "Web Security", type: "technical", expectedDuration: 120, difficulty: "medium" },
+      { id: 15, text: "Explain how you would implement authentication and authorization in a web application.", category: "Web Security", type: "technical", expectedDuration: 180, difficulty: "hard" },
+      { id: 16, text: "What are microservices? What are the advantages and challenges of microservice architecture?", category: "System Architecture", type: "technical", expectedDuration: 200, difficulty: "hard" }
     ],
-    teamwork: [
-      { id: 10, text: "Describe a time when you had to work with a difficult team member.", category: "Teamwork", type: "behavioral", expectedDuration: 120, difficulty: "medium" },
-      { id: 11, text: "How do you handle conflicts within a team?", category: "Teamwork", type: "behavioral", expectedDuration: 90, difficulty: "easy" }
+    
+    // Programming concepts
+    programmingConcepts: [
+      { id: 17, text: "Explain the difference between object-oriented and functional programming. Give examples of when to use each.", category: "Programming Paradigms", type: "technical", expectedDuration: 150, difficulty: "medium" },
+      { id: 18, text: "What are design patterns? Explain the Singleton and Factory patterns with examples.", category: "Design Patterns", type: "technical", expectedDuration: 180, difficulty: "medium" },
+      { id: 19, text: "Explain Big O notation and analyze the time complexity of common algorithms like binary search and merge sort.", category: "Algorithms", type: "technical", expectedDuration: 200, difficulty: "hard" },
+      { id: 20, text: "What is the difference between stack and heap memory? How does memory allocation work?", category: "Memory Management", type: "technical", expectedDuration: 150, difficulty: "medium" }
     ],
-    strengths: [
-      { id: 14, text: "What are your greatest strengths and how do they apply to this role?", category: "Self Assessment", type: "behavioral", expectedDuration: 120, difficulty: "easy" },
-      { id: 15, text: "What is your biggest weakness and how are you working to improve it?", category: "Self Assessment", type: "behavioral", expectedDuration: 120, difficulty: "medium" }
+    
+    // Project-based questions
+    projectQuestions: [
+      { id: 21, text: "Describe the most challenging technical project you've worked on. What technologies did you use and what problems did you solve?", category: "Project Experience", type: "behavioral", expectedDuration: 240, difficulty: "medium" },
+      { id: 22, text: "Tell me about a time when you had to learn a new technology quickly for a project. How did you approach it?", category: "Learning & Adaptation", type: "behavioral", expectedDuration: 180, difficulty: "medium" },
+      { id: 23, text: "Describe a situation where you had to debug a complex issue in production. What was your approach?", category: "Problem Solving", type: "behavioral", expectedDuration: 200, difficulty: "medium" },
+      { id: 24, text: "How do you ensure code quality in your projects? What testing strategies do you use?", category: "Code Quality", type: "technical", expectedDuration: 150, difficulty: "medium" }
     ],
-    workStyle: [
-      { id: 16, text: "How do you handle tight deadlines and pressure?", category: "Work Style", type: "behavioral", expectedDuration: 90, difficulty: "easy" },
-      { id: 17, text: "Describe your ideal work environment.", category: "Work Style", type: "behavioral", expectedDuration: 90, difficulty: "easy" }
+    
+    // Teamwork and soft skills
+    teamworkQuestions: [
+      { id: 25, text: "Describe your experience working in an Agile/Scrum environment. How do you handle sprint planning and code reviews?", category: "Teamwork", type: "behavioral", expectedDuration: 150, difficulty: "medium" },
+      { id: 26, text: "Tell me about a time when you had to explain a complex technical concept to a non-technical stakeholder.", category: "Communication", type: "behavioral", expectedDuration: 120, difficulty: "medium" },
+      { id: 27, text: "How do you handle disagreements with team members about technical decisions?", category: "Conflict Resolution", type: "behavioral", expectedDuration: 120, difficulty: "medium" }
     ],
-    careerGoals: [
-      { id: 18, text: "What are your career goals for the next 3-5 years?", category: "Career Goals", type: "behavioral", expectedDuration: 90, difficulty: "easy" },
-      { id: 19, text: "Where do you see yourself in 10 years?", category: "Career Goals", type: "behavioral", expectedDuration: 120, difficulty: "medium" }
+    
+    // Career and growth
+    careerQuestions: [
+      { id: 28, text: "What programming languages and technologies are you most excited to learn next? Why?", category: "Career Growth", type: "behavioral", expectedDuration: 90, difficulty: "easy" },
+      { id: 29, text: "How do you stay updated with the latest technology trends and best practices in software development?", category: "Continuous Learning", type: "behavioral", expectedDuration: 120, difficulty: "easy" },
+      { id: 30, text: "Where do you see yourself in your technical career in the next 3-5 years? What kind of projects do you want to work on?", category: "Career Goals", type: "behavioral", expectedDuration: 120, difficulty: "easy" }
     ],
+    
     closing: [
-      { id: 22, text: "Do you have any questions for us?", category: "Closing", type: "behavioral", expectedDuration: 120, difficulty: "easy" }
+      { id: 31, text: "Do you have any questions about the role, the team, or the technology stack we use?", category: "Closing", type: "behavioral", expectedDuration: 120, difficulty: "easy" }
     ]
   };
 
-  let selected = [questionBank.introduction[0]];
-
-  if (type === 'hr' || type === 'mixed') {
-    selected.push(questionBank.motivation[0]);
-    selected.push(questionBank.problemSolving[0]);
-    selected.push(questionBank.teamwork[0]);
-    selected.push(questionBank.strengths[0]);
-    selected.push(questionBank.workStyle[0]);
-    selected.push(questionBank.careerGoals[0]);
-  }
-
+  let selected = [];
+  
+  // Always start with introduction
+  selected.push(questionBank.introduction[0]);
+  
+  // Select questions based on type and difficulty
   if (type === 'technical' || type === 'mixed') {
-    selected.push(questionBank.technical[0]);
-    if (difficulty === 'hard') selected.push(questionBank.technical[1]);
+    // Add Java questions
+    selected.push(...getRandomQuestions(questionBank.javaQuestions, 2, difficulty));
+    
+    // Add Database questions
+    selected.push(...getRandomQuestions(questionBank.databaseQuestions, 2, difficulty));
+    
+    // Add Web Development questions
+    selected.push(...getRandomQuestions(questionBank.webDevQuestions, 1, difficulty));
+    
+    // Add Programming concepts
+    selected.push(...getRandomQuestions(questionBank.programmingConcepts, 1, difficulty));
   }
-
+  
+  if (type === 'hr' || type === 'mixed') {
+    // Add project-based questions
+    selected.push(...getRandomQuestions(questionBank.projectQuestions, 2, difficulty));
+    
+    // Add teamwork questions
+    selected.push(...getRandomQuestions(questionBank.teamworkQuestions, 1, difficulty));
+  }
+  
+  // Add career questions
+  selected.push(...getRandomQuestions(questionBank.careerQuestions, 1, difficulty));
+  
+  // Always end with closing
   selected.push(questionBank.closing[0]);
-  return selected.slice(0, 10);
+  
+  // Limit to 10 questions and ensure unique IDs
+  return selected.slice(0, 10).map((q, index) => ({ ...q, id: index + 1 }));
+}
+
+// Helper function to get random questions based on difficulty
+function getRandomQuestions(questionArray, count, difficulty) {
+  let filteredQuestions = questionArray;
+  
+  // Filter by difficulty if specified
+  if (difficulty === 'easy') {
+    filteredQuestions = questionArray.filter(q => q.difficulty === 'easy' || q.difficulty === 'medium');
+  } else if (difficulty === 'hard') {
+    filteredQuestions = questionArray.filter(q => q.difficulty === 'medium' || q.difficulty === 'hard');
+  }
+  
+  // If not enough questions after filtering, use all
+  if (filteredQuestions.length < count) {
+    filteredQuestions = questionArray;
+  }
+  
+  // Shuffle and return requested count
+  const shuffled = [...filteredQuestions].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
 }
 
 // @route   DELETE /api/interview/:id
