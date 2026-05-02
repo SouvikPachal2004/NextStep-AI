@@ -46,18 +46,56 @@ router.post('/analyze-resume', protect, upload.single('resume'), async (req, res
     }
 
     const { difficulty, type } = req.body;
-    const questions = generateQuestions(difficulty, type);
+    
+    // Try to analyze the resume content
+    let resumeAnalysis = null;
+    let questions = [];
+    
+    try {
+      // Attempt to extract text from the resume file
+      const resumeText = await extractTextFromResume(req.file.path);
+      
+      if (resumeText && resumeText.length > 50) {
+        // Analyze the resume content
+        resumeAnalysis = analyzeResumeContent(resumeText);
+        
+        // Generate questions based on resume analysis
+        questions = generateResumeBasedQuestions(resumeAnalysis, difficulty, type);
+        
+        console.log('Resume analysis successful:', {
+          textLength: resumeText.length,
+          skillsFound: resumeAnalysis.skills.length,
+          questionsGenerated: questions.length
+        });
+      } else {
+        throw new Error('Could not extract sufficient text from resume');
+      }
+    } catch (analysisError) {
+      console.error('Resume analysis failed:', analysisError.message);
+      
+      // Fallback to enhanced default questions
+      questions = generateQuestions(difficulty, type);
+      
+      resumeAnalysis = {
+        fileName: req.file.originalname,
+        fileSize: req.file.size,
+        uploadedAt: new Date(),
+        analysisStatus: 'fallback',
+        error: analysisError.message
+      };
+    }
 
     res.json({
       success: true,
       data: {
-        resumeAnalysis: {
+        resumeAnalysis: resumeAnalysis || {
           fileName: req.file.originalname,
           fileSize: req.file.size,
           uploadedAt: new Date()
         },
         questions,
-        totalQuestions: questions.length
+        totalQuestions: questions.length,
+        analysisStatus: resumeAnalysis?.analysisStatus || 'success'
       }
     });
   } catch (error) {
@@ -273,6 +311,351 @@ router.get('/stats', protect, async (req, res) => {
     res.status(500).json({ success: false, message: 'Error fetching stats' });
   }
 });
+
+// ─── RESUME ANALYSIS FUNCTIONS ────────────────────────────────────────────────
+
+const fs = require('fs');
+const pdfParse = require('pdf-parse');
+const mammoth = require('mammoth');
+
+async function extractTextFromResume(filePath) {
+  try {
+    const fileExtension = path.extname(filePath).toLowerCase();
+    
+    if (fileExtension === '.pdf') {
+      return await extractTextFromPDF(filePath);
+    } else if (fileExtension === '.docx' || fileExtension === '.doc') {
+      return await extractTextFromWord(filePath);
+    } else {
+      throw new Error('Unsupported file format');
+    }
+  } catch (error) {
+    console.error('Text extraction error:', error);
+    throw error;
+  }
+}
+
+async function extractTextFromPDF(filePath) {
+  try {
+    const dataBuffer = fs.readFileSync(filePath);
+    const data = await pdfParse(dataBuffer);
+    
+    if (!data.text || data.text.trim().length < 50) {
+      throw new Error('Could not extract sufficient text from PDF');
+    }
+    
+    return data.text;
+  } catch (error) {
+    console.error('PDF extraction error:', error);
+    throw new Error('Could not extract text from PDF: ' + error.message);
+  }
+}
+
+async function extractTextFromWord(filePath) {
+  try {
+    const result = await mammoth.extractRawText({ path: filePath });
+    
+    if (!result.value || result.value.trim().length < 50) {
+      throw new Error('Could not extract sufficient text from Word document');
+    }
+    
+    return result.value;
+  } catch (error) {
+    console.error('Word extraction error:', error);
+    throw new Error('Could not extract text from Word document: ' + error.message);
+  }
+}
+
+function analyzeResumeContent(text) {
+  const textLower = text.toLowerCase();
+  
+  // Extract skills
+  const skillKeywords = {
+    'Programming Languages': ['java', 'javascript', 'python', 'c++', 'c#', 'ruby', 'php', 'swift', 'kotlin', 'go', 'rust', 'typescript'],
+    'Web Technologies': ['html', 'css', 'react', 'angular', 'vue', 'node.js', 'express', 'django', 'flask', 'spring', 'asp.net'],
+    'Databases': ['sql', 'mysql', 'postgresql', 'mongodb', 'redis', 'oracle', 'cassandra', 'dynamodb'],
+    'Cloud & DevOps': ['aws', 'azure', 'gcp', 'docker', 'kubernetes', 'terraform', 'jenkins', 'ci/cd'],
+    'Tools & Frameworks': ['git', 'github', 'jira', 'agile', 'scrum', 'rest api', 'graphql', 'microservices']
+  };
+  
+  const foundSkills = [];
+  const skillCategories = {};
+  
+  for (const [category, skills] of Object.entries(skillKeywords)) {
+    const categorySkills = [];
+    for (const skill of skills) {
+      if (textLower.includes(skill)) {
+        foundSkills.push(skill);
+        categorySkills.push(skill);
+      }
+    }
+    if (categorySkills.length > 0) {
+      skillCategories[category] = categorySkills;
+    }
+  }
+  
+  // Extract experience level
+  let experienceLevel = 'Entry Level';
+  const experiencePatterns = [
+    /(\d+)\+?\s*years?\s*(?:of)?\s*experience/i,
+    /experience\s*:?\s*(\d+)\+?\s*years?/i,
+    /(\d+)\+?\s*years?\s*in/i
+  ];
+  
+  for (const pattern of experiencePatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      const years = parseInt(match[1]);
+      if (years <= 2) experienceLevel = '0-2 years';
+      else if (years <= 5) experienceLevel = '2-5 years';
+      else if (years <= 10) experienceLevel = '5-10 years';
+      else experienceLevel = '10+ years';
+      break;
+    }
+  }
+  
+  // Extract education
+  let education = 'Not specified';
+  if (textLower.includes('phd') || textLower.includes('doctorate')) {
+    education = 'PhD / Doctorate';
+  } else if (textLower.includes('master') || textLower.includes('m.s') || textLower.includes('mba')) {
+    education = "Master's Degree";
+  } else if (textLower.includes('bachelor') || textLower.includes('b.s') || textLower.includes('b.tech')) {
+    education = "Bachelor's Degree";
+  } else if (textLower.includes('diploma') || textLower.includes('associate')) {
+    education = 'Diploma / Associate';
+  }
+  
+  // Extract projects
+  const hasProjects = textLower.includes('project') || textLower.includes('portfolio');
+  
+  return {
+    skills: foundSkills,
+    skillCategories,
+    experienceLevel,
+    education,
+    hasProjects,
+    textLength: text.length,
+    wordCount: text.split(/\s+/).length
+  };
+}
+
+function generateResumeBasedQuestions(analysis, difficulty = 'medium', type = 'mixed') {
+  const { skills, skillCategories, experienceLevel, education, hasProjects } = analysis;
+  
+  let questions = [];
+  let questionId = 1;
+  
+  // Always start with introduction
+  questions.push({
+    id: questionId++,
+    text: "Tell me about yourself and walk me through your background and experience as mentioned in your resume.",
+    category: "Introduction",
+    type: "behavioral",
+    expectedDuration: 120
+  });
+  
+  // Generate skill-specific questions
+  if (skillCategories['Programming Languages']) {
+    const langs = skillCategories['Programming Languages'];
+    if (langs.includes('java')) {
+      questions.push({
+        id: questionId++,
+        text: "I see you have Java experience on your resume. Can you explain the difference between abstract classes and interfaces in Java? When would you use each?",
+        category: "Java Programming",
+        type: "technical",
+        expectedDuration: 150
+      });
+      
+      if (difficulty === 'hard') {
+        questions.push({
+          id: questionId++,
+          text: "Your resume mentions Java experience. Explain Java's garbage collection mechanism and how you optimize memory usage in your applications.",
+          category: "Java Memory Management",
+          type: "technical",
+          expectedDuration: 180
+        });
+      }
+    }
+    
+    if (langs.includes('javascript')) {
+      questions.push({
+        id: questionId++,
+        text: "I notice JavaScript is listed in your skills. Can you explain the concept of closures in JavaScript and provide a practical example?",
+        category: "JavaScript",
+        type: "technical",
+        expectedDuration: 150
+      });
+    }
+    
+    if (langs.includes('python')) {
+      questions.push({
+        id: questionId++,
+        text: "Your resume shows Python experience. What are Python decorators and how have you used them in your projects?",
+        category: "Python Programming",
+        type: "technical",
+        expectedDuration: 150
+      });
+    }
+  }
+  
+  // Database questions based on resume
+  if (skillCategories['Databases']) {
+    const dbs = skillCategories['Databases'];
+    if (dbs.includes('mysql') || dbs.includes('sql')) {
+      questions.push({
+        id: questionId++,
+        text: "Your resume mentions database experience. Can you explain the difference between INNER JOIN, LEFT JOIN, and RIGHT JOIN with examples from your work?",
+        category: "Database/SQL",
+        type: "technical",
+        expectedDuration: 150
+      });
+    }
+    
+    if (dbs.includes('mongodb')) {
+      questions.push({
+        id: questionId++,
+        text: "I see MongoDB on your resume. How does MongoDB differ from relational databases, and when would you choose it over SQL databases?",
+        category: "NoSQL Databases",
+        type: "technical",
+        expectedDuration: 150
+      });
+    }
+  }
+  
+  // Web technology questions
+  if (skillCategories['Web Technologies']) {
+    const webTech = skillCategories['Web Technologies'];
+    if (webTech.includes('react')) {
+      questions.push({
+        id: questionId++,
+        text: "Your resume shows React experience. Can you explain the React component lifecycle and how you've used hooks in your projects?",
+        category: "React Development",
+        type: "technical",
+        expectedDuration: 180
+      });
+    }
+    
+    if (webTech.includes('node.js')) {
+      questions.push({
+        id: questionId++,
+        text: "I notice Node.js in your skill set. How do you handle asynchronous operations in Node.js, and what's the difference between callbacks, promises, and async/await?",
+        category: "Node.js Backend",
+        type: "technical",
+        expectedDuration: 180
+      });
+    }
+  }
+  
+  // Experience-based questions
+  if (experienceLevel !== 'Entry Level') {
+    questions.push({
+      id: questionId++,
+      text: `Based on your ${experienceLevel.toLowerCase()} of experience, tell me about the most challenging technical problem you've solved. What was your approach and what technologies did you use?`,
+      category: "Problem Solving",
+      type: "behavioral",
+      expectedDuration: 200
+    });
+    
+    questions.push({
+      id: questionId++,
+      text: "With your experience, how do you ensure code quality in your projects? What testing strategies and code review processes have you implemented?",
+      category: "Code Quality & Best Practices",
+      type: "technical",
+      expectedDuration: 150
+    });
+  }
+  
+  // Project-based questions
+  if (hasProjects) {
+    questions.push({
+      id: questionId++,
+      text: "I see you have projects mentioned in your resume. Can you walk me through one of your most significant projects? What technologies did you use and what challenges did you face?",
+      category: "Project Experience",
+      type: "behavioral",
+      expectedDuration: 200
+    });
+  }
+  
+  // Cloud/DevOps questions if relevant
+  if (skillCategories['Cloud & DevOps']) {
+    const cloudSkills = skillCategories['Cloud & DevOps'];
+    if (cloudSkills.includes('aws') || cloudSkills.includes('azure') || cloudSkills.includes('gcp')) {
+      questions.push({
+        id: questionId++,
+        text: "Your resume mentions cloud experience. Can you explain the benefits of cloud computing and describe a project where you've used cloud services?",
+        category: "Cloud Computing",
+        type: "technical",
+        expectedDuration: 150
+      });
+    }
+    
+    if (cloudSkills.includes('docker')) {
+      questions.push({
+        id: questionId++,
+        text: "I see Docker in your skills. What are containers and how do they differ from virtual machines? How have you used Docker in your projects?",
+        category: "DevOps & Containerization",
+        type: "technical",
+        expectedDuration: 150
+      });
+    }
+  }
+  
+  // Behavioral questions based on experience level
+  if (type === 'hr' || type === 'mixed') {
+    questions.push({
+      id: questionId++,
+      text: "Based on your background, how do you stay updated with new technologies and programming trends? Can you mention a recent technology you learned?",
+      category: "Continuous Learning",
+      type: "behavioral",
+      expectedDuration: 120
+    });
+    
+    if (experienceLevel !== 'Entry Level') {
+      questions.push({
+        id: questionId++,
+        text: "With your experience working in teams, how do you handle code reviews and technical disagreements with colleagues?",
+        category: "Teamwork & Communication",
+        type: "behavioral",
+        expectedDuration: 120
+      });
+    }
+  }
+  
+  // Career goals question
+  questions.push({
+    id: questionId++,
+    text: `Given your background in ${skills.slice(0, 3).join(', ')}, where do you see yourself in your technical career in the next 3-5 years? What technologies do you want to master?`,
+    category: "Career Goals",
+    type: "behavioral",
+    expectedDuration: 120
+  });
+  
+  // Ensure we have at least 8 questions but not more than 10
+  if (questions.length < 8) {
+    // Add some general technical questions to fill up
+    const generalQuestions = [
+      {
+        id: questionId++,
+        text: "What is your approach to debugging code? Can you walk me through your debugging process?",
+        category: "Problem Solving",
+        type: "technical",
+        expectedDuration: 120
+      },
+      {
+        id: questionId++,
+        text: "How do you approach learning a new technology or framework? Can you give me an example?",
+        category: "Learning Approach",
+        type: "behavioral",
+        expectedDuration: 120
+      }
+    ];
+    
+    questions.push(...generalQuestions.slice(0, 8 - questions.length));
+  }
+  
+  return questions.slice(0, 10); // Limit to 10 questions
+}
 
 // ─── HELPER FUNCTIONS ─────────────────────────────────────────────────────────
 

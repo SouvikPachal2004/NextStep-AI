@@ -564,7 +564,7 @@ async function analyzeResume(file) {
     });
     
     if (!response.ok) {
-      throw new Error('Failed to analyze resume');
+      throw new Error(`Server error: ${response.status}`);
     }
     
     const data = await response.json();
@@ -574,21 +574,55 @@ async function analyzeResume(file) {
       interviewState.questions = data.data.questions || [];
       interviewState.resumeUploaded = true;
       
-      updateCheckItem('checkResume', 'success', 'Resume Uploaded & Analyzed');
+      const analysisStatus = data.data.analysisStatus || 'success';
+      
+      if (analysisStatus === 'success') {
+        updateCheckItem('checkResume', 'success', 'Resume Analyzed Successfully');
+        showToast(`✅ Resume analyzed! Generated ${interviewState.questions.length} personalized questions based on your skills and experience.`, 'success');
+      } else if (analysisStatus === 'fallback') {
+        updateCheckItem('checkResume', 'success', 'Resume Uploaded (Using Enhanced Questions)');
+        showToast(`⚠️ Resume uploaded but analysis had issues. Using enhanced technical questions instead.`, 'warning');
+      }
+      
       checkStartButtonState();
       
-      showToast(`Resume analyzed! ${interviewState.questions.length} questions generated`, 'success');
+      // Log analysis details for debugging
+      console.log('Resume analysis completed:', {
+        status: analysisStatus,
+        questionsGenerated: interviewState.questions.length,
+        analysisData: interviewState.resumeAnalysis
+      });
+      
     } else {
       throw new Error(data.message || 'Analysis failed');
     }
   } catch (error) {
     console.error('Resume analysis error:', error);
-    showToast('Error analyzing resume. Using default questions.', 'warning');
     
-    // Use default questions as fallback
+    // Provide more specific error messages
+    let errorMessage = 'Error analyzing resume. ';
+    if (error.message.includes('Server error: 500')) {
+      errorMessage += 'Server processing error - using enhanced default questions.';
+    } else if (error.message.includes('Failed to fetch')) {
+      errorMessage += 'Network error - using enhanced default questions.';
+    } else {
+      errorMessage += 'Using enhanced default questions.';
+    }
+    
+    showToast(errorMessage, 'warning');
+    
+    // Use enhanced default questions as fallback
     interviewState.questions = generateDefaultQuestions();
     interviewState.resumeUploaded = true;
-    updateCheckItem('checkResume', 'success', 'Resume Uploaded');
+    interviewState.resumeAnalysis = {
+      fileName: file.name,
+      fileSize: file.size,
+      uploadedAt: new Date(),
+      analysisStatus: 'fallback_error',
+      error: error.message
+    };
+    
+    updateCheckItem('checkResume', 'success', 'Resume Uploaded (Default Questions)');
     checkStartButtonState();
   }
 }
