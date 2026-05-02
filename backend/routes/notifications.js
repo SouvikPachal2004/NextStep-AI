@@ -50,6 +50,45 @@ router.put('/read-all', protect, async (req, res) => {
   }
 });
 
+// @route   POST /api/notifications
+// @desc    Send notification to a user (admin only)
+// @access  Private/Admin
+router.post('/', protect, async (req, res) => {
+  try {
+    // Check if user is admin
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Access denied. Admin only.' });
+    }
+
+    const { userId, type, title, message, data } = req.body;
+
+    if (!userId || !title || !message) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'userId, title, and message are required' 
+      });
+    }
+
+    const notification = await Notification.create({
+      user: userId,
+      type: type || 'admin_message',
+      title,
+      message,
+      data: data || {}
+    });
+
+    res.status(201).json({ 
+      success: true, 
+      data: notification,
+      message: 'Notification sent successfully'
+    });
+
+  } catch (error) {
+    console.error('Send notification error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 // @route   DELETE /api/notifications/:id
 // @desc    Delete a notification
 // @access  Private

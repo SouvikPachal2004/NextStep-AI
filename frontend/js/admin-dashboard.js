@@ -99,6 +99,11 @@ async function loadDashboardData() {
       }
     }
 
+    // Load interviews
+    if (typeof loadInterviewData === 'function') {
+      await loadInterviewData();
+    }
+
   } catch (error) {
     console.error('Error loading dashboard data:', error);
   }
@@ -1154,8 +1159,8 @@ function renderInterviewsTable(interviews) {
               <i class="fas fa-eye"></i>
             </button>
             ${!passed ? `
-              <button class="btn-icon btn-sm" onclick="contactStudent('${user._id}', '${user.name}', '${user.email}', ${score})" title="Contact Student" style="color:var(--warning);">
-                <i class="fas fa-envelope"></i>
+              <button class="btn-icon btn-sm" onclick="contactStudent('${user._id}', '${user.name}', '${user.email}', ${score})" title="Send Warning" style="color:var(--warning);">
+                <i class="fas fa-exclamation-triangle"></i>
               </button>
             ` : ''}
             <button class="btn-icon btn-sm" onclick="deleteInterview('${interview._id}')" title="Delete">
@@ -1284,7 +1289,7 @@ function viewInterviewResult(interviewId) {
         <div class="modal-footer">
           ${!passed ? `
             <button class="btn btn-warning" onclick="contactStudent('${user._id}', '${user.name}', '${user.email}', ${score})">
-              <i class="fas fa-envelope"></i> Contact Student
+              <i class="fas fa-exclamation-triangle"></i> Send Warning
             </button>
           ` : ''}
           <button class="btn btn-outline" onclick="closeInterviewModal()">Close</button>
@@ -1305,40 +1310,89 @@ function contactStudent(userId, userName, userEmail, score) {
     <div class="modal-overlay" id="contactModal" onclick="if(event.target===this) closeContactModal()">
       <div class="modal-content" style="max-width:500px;">
         <div class="modal-header">
-          <h3 class="modal-title">Contact Student - ${userName}</h3>
+          <h3 class="modal-title">Send Warning to ${userName}</h3>
           <button class="btn-icon" onclick="closeContactModal()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
           <div style="background:rgba(239,68,68,0.1);padding:1rem;border-radius:var(--radius-lg);margin-bottom:1.5rem;border-left:4px solid #EF4444;">
             <p style="margin:0;color:var(--text-primary);"><strong>Student scored ${score}% - Below qualifying mark</strong></p>
-            <p style="margin:0.5rem 0 0;font-size:0.875rem;color:var(--text-secondary);">Consider reaching out to provide support and guidance.</p>
+            <p style="margin:0.5rem 0 0;font-size:0.875rem;color:var(--text-secondary);">Send a direct warning notification to their dashboard.</p>
           </div>
           
-          <div style="margin-bottom:1rem;">
-            <strong>Student Email:</strong> <a href="mailto:${userEmail}" style="color:var(--primary);">${userEmail}</a>
+          <div style="margin-bottom:1.5rem;">
+            <label class="form-label">Warning Message:</label>
+            <textarea class="form-control" id="warningMessage" rows="4" placeholder="Enter your warning message..."
+              style="width:100%;resize:vertical;">Your recent interview score of ${score}% is below our qualifying mark. We recommend additional preparation and practice. Please review the feedback provided and consider retaking the interview after improving your skills.</textarea>
           </div>
           
           <div style="background:var(--bg-body);padding:1rem;border-radius:var(--radius-lg);">
-            <h5 style="margin:0 0 0.5rem;">Suggested Actions:</h5>
+            <h5 style="margin:0 0 0.5rem;"><i class="fas fa-info-circle" style="color:var(--primary);"></i> This will:</h5>
             <ul style="margin:0;padding-left:1.5rem;font-size:0.875rem;color:var(--text-secondary);">
-              <li>Send encouragement and schedule a follow-up session</li>
-              <li>Provide additional resources for interview preparation</li>
-              <li>Offer mock interview practice sessions</li>
-              <li>Share specific feedback based on their performance</li>
+              <li>Send a notification directly to the student's dashboard</li>
+              <li>Appear in their notification bell with warning icon</li>
+              <li>Include the interview score and feedback</li>
+              <li>Provide guidance for improvement</li>
             </ul>
           </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-outline" onclick="closeContactModal()">Cancel</button>
-          <a href="mailto:${userEmail}?subject=Interview Follow-up - NextStep AI&body=Hi ${userName},%0A%0AI noticed you recently completed an AI interview with us. I'd like to schedule a follow-up session to discuss your performance and provide some additional guidance.%0A%0ABest regards,%0ANextStep AI Team" class="btn btn-primary">
-            <i class="fas fa-envelope"></i> Send Email
-          </a>
+          <button class="btn btn-warning" onclick="sendWarningNotification('${userId}', '${userName}', ${score})">
+            <i class="fas fa-exclamation-triangle"></i> Send Warning
+          </button>
         </div>
       </div>
     </div>
   `;
   
   document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+async function sendWarningNotification(userId, userName, score) {
+  const messageEl = document.getElementById('warningMessage');
+  const message = messageEl ? messageEl.value.trim() : '';
+  
+  if (!message) {
+    showToast('Please enter a warning message', 'error');
+    return;
+  }
+  
+  try {
+    const token = getAuthToken();
+    const response = await fetch(`${API_URL}/notifications`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        userId: userId,
+        type: 'interview_warning',
+        title: `⚠️ Interview Performance Warning - Score: ${score}%`,
+        message: message,
+        data: {
+          score: score,
+          qualifyingMark: 60,
+          adminSent: true,
+          timestamp: new Date().toISOString()
+        }
+      })
+    });
+    
+    if (response.ok) {
+      showToast(`Warning sent to ${userName}'s dashboard successfully!`, 'success');
+      closeContactModal();
+      
+      // Optionally reload interview data to update UI
+      loadInterviewData();
+    } else {
+      const error = await response.json();
+      showToast(error.message || 'Failed to send warning', 'error');
+    }
+  } catch (error) {
+    console.error('Error sending warning:', error);
+    showToast('Error sending warning notification', 'error');
+  }
 }
 
 function closeContactModal() {
@@ -1409,6 +1463,7 @@ window.loadInterviewData = loadInterviewData;
 window.viewInterviewResult = viewInterviewResult;
 window.closeInterviewModal = closeInterviewModal;
 window.contactStudent = contactStudent;
+window.sendWarningNotification = sendWarningNotification;
 window.closeContactModal = closeContactModal;
 window.deleteInterview = deleteInterview;
 window.filterInterviews = filterInterviews;
