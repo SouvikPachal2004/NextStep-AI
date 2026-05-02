@@ -1836,6 +1836,24 @@ async function loadInterviewHistory() {
                     <button class="btn btn-primary btn-sm" onclick="window.location.href='ai-interview.html'">
                       <i class="fas fa-redo"></i> Retake
                     </button>
+                    <div class="interview-remarks-section" style="margin-top:0.5rem;">
+                      <div class="remarks-header" style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+                        <i class="fas fa-comment-alt" style="color:var(--primary);font-size:0.8rem;"></i>
+                        <span style="font-size:0.8rem;font-weight:600;color:var(--text-primary);">Admin Remarks</span>
+                      </div>
+                      <div class="remarks-content" style="background:var(--bg-body);border:1px solid var(--border);border-radius:var(--radius-md);padding:0.75rem;min-height:60px;max-height:120px;overflow-y:auto;">
+                        ${interview.adminRemarks ? `
+                          <div style="color:var(--text-secondary);font-size:0.85rem;line-height:1.4;">
+                            ${interview.adminRemarks}
+                          </div>
+                        ` : `
+                          <div style="color:var(--text-muted);font-size:0.8rem;font-style:italic;display:flex;align-items:center;justify-content:center;height:100%;min-height:40px;">
+                            <i class="fas fa-info-circle" style="margin-right:0.5rem;"></i>
+                            No admin feedback yet
+                          </div>
+                        `}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>`;

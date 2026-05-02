@@ -38,6 +38,7 @@ const interviewSchema = new mongoose.Schema({
   qualifyingMark: { type: Number, default: 60 },
   passed: { type: Boolean, default: false },
   status: { type: String, enum: ['completed', 'incomplete'], default: 'completed' },
+  adminRemarks: { type: String, default: '' }, // Admin feedback/remarks for the interview
   createdAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 

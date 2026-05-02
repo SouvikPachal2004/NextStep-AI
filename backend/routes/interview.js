@@ -430,6 +430,57 @@ function getRandomQuestions(questionArray, count, difficulty) {
   return shuffled.slice(0, count);
 }
 
+// @route   PUT /api/interview/:id/remarks
+// @desc    Add admin remarks to an interview (admin only)
+// @access  Private/Admin
+router.put('/:id/remarks', protect, async (req, res) => {
+  try {
+    const { remarks } = req.body;
+    
+    if (!remarks || typeof remarks !== 'string') {
+      return res.status(400).json({ success: false, message: 'Remarks text is required' });
+    }
+    
+    const interview = await Interview.findById(req.params.id);
+    
+    if (!interview) {
+      return res.status(404).json({ success: false, message: 'Interview not found' });
+    }
+    
+    // Update the interview with admin remarks
+    interview.adminRemarks = remarks.trim();
+    await interview.save();
+    
+    // Send notification to the user about the admin feedback
+    const user = await User.findById(interview.user).select('name email');
+    if (user) {
+      await Notification.create({
+        user: interview.user,
+        type: 'admin_feedback',
+        title: '📝 Admin Feedback Received',
+        message: `You have received feedback from an admin regarding your interview performance. Check your interview history to view the remarks.`,
+        data: { 
+          interviewId: interview._id,
+          adminRemarks: remarks.trim()
+        }
+      });
+    }
+    
+    res.json({ 
+      success: true, 
+      message: 'Admin remarks added successfully',
+      data: { 
+        interviewId: interview._id,
+        adminRemarks: interview.adminRemarks
+      }
+    });
+    
+  } catch (error) {
+    console.error('Add admin remarks error:', error);
+    res.status(500).json({ success: false, message: 'Error adding admin remarks' });
+  }
+});
+
 // @route   DELETE /api/interview/:id
 // @desc    Delete an interview record (admin only)
 // @access  Private/Admin

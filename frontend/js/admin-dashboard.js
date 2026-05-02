@@ -1254,7 +1254,7 @@ function viewInterviewResult(interviewId) {
           
           <!-- AI Feedback -->
           ${interview.feedback ? `
-            <div style="background:var(--bg-body);padding:1.5rem;border-radius:var(--radius-lg);">
+            <div style="background:var(--bg-body);padding:1.5rem;border-radius:var(--radius-lg);margin-bottom:1.5rem;">
               <h5 style="margin:0 0 1rem;color:var(--text-primary);"><i class="fas fa-robot" style="color:var(--primary);margin-right:0.5rem;"></i>AI Feedback</h5>
               
               ${interview.feedback.strengths?.length > 0 ? `
@@ -1285,6 +1285,38 @@ function viewInterviewResult(interviewId) {
               ` : ''}
             </div>
           ` : ''}
+          
+          <!-- Admin Remarks Section -->
+          <div style="background:var(--bg-body);padding:1.5rem;border-radius:var(--radius-lg);">
+            <h5 style="margin:0 0 1rem;color:var(--text-primary);"><i class="fas fa-comment-alt" style="color:var(--secondary);margin-right:0.5rem;"></i>Admin Remarks</h5>
+            
+            <div style="margin-bottom:1rem;">
+              <label class="form-label" style="font-weight:600;color:var(--text-primary);">Add/Update Feedback for Student:</label>
+              <textarea class="form-control" id="adminRemarksInput" rows="4" placeholder="Enter your feedback and remarks for this student's interview performance..."
+                style="width:100%;resize:vertical;margin-top:0.5rem;">${interview.adminRemarks || ''}</textarea>
+              <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.5rem;">
+                <i class="fas fa-info-circle"></i> This feedback will be visible to the student in their interview history.
+              </div>
+            </div>
+            
+            <div style="display:flex;gap:0.75rem;">
+              <button class="btn btn-primary btn-sm" onclick="saveAdminRemarks('${interview._id}')">
+                <i class="fas fa-save"></i> Save Remarks
+              </button>
+              ${interview.adminRemarks ? `
+                <button class="btn btn-outline btn-sm" onclick="clearAdminRemarks('${interview._id}')">
+                  <i class="fas fa-eraser"></i> Clear
+                </button>
+              ` : ''}
+            </div>
+            
+            ${interview.adminRemarks ? `
+              <div style="margin-top:1rem;padding:1rem;background:var(--primary-soft);border-radius:var(--radius-md);border-left:4px solid var(--primary);">
+                <h6 style="margin:0 0 0.5rem;color:var(--primary);"><i class="fas fa-comment"></i> Current Remarks:</h6>
+                <p style="margin:0;color:var(--text-secondary);line-height:1.5;">${interview.adminRemarks}</p>
+              </div>
+            ` : ''}
+          </div>
         </div>
         <div class="modal-footer">
           ${!passed ? `
@@ -1397,6 +1429,93 @@ async function sendWarningNotification(userId, userName, score) {
 
 function closeContactModal() {
   document.getElementById('contactModal')?.remove();
+}
+
+async function saveAdminRemarks(interviewId) {
+  const remarksInput = document.getElementById('adminRemarksInput');
+  const remarks = remarksInput ? remarksInput.value.trim() : '';
+  
+  if (!remarks) {
+    showToast('Please enter some remarks before saving', 'warning');
+    return;
+  }
+  
+  try {
+    const token = getAuthToken();
+    const response = await fetch(`${API_URL}/interview/${interviewId}/remarks`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ remarks })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      showToast('Admin remarks saved successfully! Student will be notified.', 'success');
+      
+      // Update the interview in memory
+      const interview = window.allInterviews?.find(i => i._id === interviewId);
+      if (interview) {
+        interview.adminRemarks = remarks;
+      }
+      
+      // Close and reopen modal to show updated remarks
+      closeInterviewModal();
+      setTimeout(() => viewInterviewResult(interviewId), 300);
+      
+      // Reload interview data to update the table
+      loadInterviewData();
+    } else {
+      const error = await response.json();
+      showToast(error.message || 'Failed to save remarks', 'error');
+    }
+  } catch (error) {
+    console.error('Error saving admin remarks:', error);
+    showToast('Error saving admin remarks', 'error');
+  }
+}
+
+async function clearAdminRemarks(interviewId) {
+  if (!confirm('Are you sure you want to clear the admin remarks? This action cannot be undone.')) {
+    return;
+  }
+  
+  try {
+    const token = getAuthToken();
+    const response = await fetch(`${API_URL}/interview/${interviewId}/remarks`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ remarks: '' })
+    });
+    
+    if (response.ok) {
+      showToast('Admin remarks cleared successfully', 'success');
+      
+      // Update the interview in memory
+      const interview = window.allInterviews?.find(i => i._id === interviewId);
+      if (interview) {
+        interview.adminRemarks = '';
+      }
+      
+      // Close and reopen modal to show updated state
+      closeInterviewModal();
+      setTimeout(() => viewInterviewResult(interviewId), 300);
+      
+      // Reload interview data to update the table
+      loadInterviewData();
+    } else {
+      const error = await response.json();
+      showToast(error.message || 'Failed to clear remarks', 'error');
+    }
+  } catch (error) {
+    console.error('Error clearing admin remarks:', error);
+    showToast('Error clearing admin remarks', 'error');
+  }
 }
 
 async function deleteInterview(interviewId) {

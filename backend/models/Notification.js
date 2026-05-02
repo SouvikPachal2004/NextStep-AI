@@ -27,6 +27,7 @@ const notificationSchema = new mongoose.Schema({
       'job_reviewed',
       'interview_result',      // user receives interview result
       'interview_warning',     // user scored below qualifying mark
+      'admin_feedback',        // user receives admin feedback/remarks on interview
       // ── Generic ────────────────────────────────────
       'general'
     ],
