@@ -1836,24 +1836,9 @@ async function loadInterviewHistory() {
                     <button class="btn btn-primary btn-sm" onclick="window.location.href='ai-interview.html'">
                       <i class="fas fa-redo"></i> Retake
                     </button>
-                    <div class="interview-remarks-section" style="margin-top:0.5rem;">
-                      <div class="remarks-header" style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
-                        <i class="fas fa-comment-alt" style="color:var(--primary);font-size:0.8rem;"></i>
-                        <span style="font-size:0.8rem;font-weight:600;color:var(--text-primary);">Admin Remarks</span>
-                      </div>
-                      <div class="remarks-content" style="background:var(--bg-body);border:1px solid var(--border);border-radius:var(--radius-md);padding:0.75rem;min-height:60px;max-height:120px;overflow-y:auto;">
-                        ${interview.adminRemarks ? `
-                          <div style="color:var(--text-secondary);font-size:0.85rem;line-height:1.4;">
-                            ${interview.adminRemarks}
-                          </div>
-                        ` : `
-                          <div style="color:var(--text-muted);font-size:0.8rem;font-style:italic;display:flex;align-items:center;justify-content:center;height:100%;min-height:40px;">
-                            <i class="fas fa-info-circle" style="margin-right:0.5rem;"></i>
-                            No admin feedback yet
-                          </div>
-                        `}
-                      </div>
-                    </div>
+                    <button class="btn ${getRemarksBtnClass(interview.adminRemarks)} btn-sm" onclick="toggleRemarks('${interview._id}')" id="remarksBtn-${interview._id}">
+                      <i class="fas fa-comment-alt"></i> ${interview.adminRemarks ? 'Admin Remarks' : 'No Remarks'}
+                    </button>
                   </div>
                 </div>
               </div>`;
@@ -1873,6 +1858,141 @@ async function loadInterviewHistory() {
         </button>
       </div>`;
   }
+}
+
+function getRemarksBtnClass(remarks) {
+  if (!remarks || remarks.trim() === '') {
+    return 'btn-outline'; // Default gray for no remarks
+  }
+  
+  // Simple sentiment analysis based on keywords
+  const remarksLower = remarks.toLowerCase();
+  
+  // Positive keywords
+  const positiveKeywords = [
+    'excellent', 'great', 'good', 'well done', 'impressive', 'outstanding', 
+    'strong', 'solid', 'nice', 'perfect', 'amazing', 'fantastic', 'superb',
+    'congratulations', 'keep up', 'well prepared', 'thorough', 'detailed',
+    'clear', 'articulate', 'confident', 'professional', 'skilled'
+  ];
+  
+  // Negative keywords
+  const negativeKeywords = [
+    'poor', 'weak', 'needs improvement', 'lacking', 'insufficient', 'below',
+    'disappointing', 'unsatisfactory', 'inadequate', 'struggle', 'difficulty',
+    'failed', 'missing', 'incomplete', 'unclear', 'confused', 'unprepared',
+    'practice more', 'work on', 'improve', 'better preparation', 'not ready'
+  ];
+  
+  const positiveCount = positiveKeywords.filter(keyword => remarksLower.includes(keyword)).length;
+  const negativeCount = negativeKeywords.filter(keyword => remarksLower.includes(keyword)).length;
+  
+  if (positiveCount > negativeCount) {
+    return 'btn-success'; // Green for positive feedback
+  } else if (negativeCount > positiveCount) {
+    return 'btn-danger'; // Red for negative feedback
+  } else {
+    return 'btn-warning'; // Yellow for neutral/mixed feedback
+  }
+}
+
+function toggleRemarks(interviewId) {
+  const interview = window.allInterviews?.find(i => i._id === interviewId);
+  if (!interview) return;
+  
+  // Check if remarks modal already exists
+  const existingModal = document.getElementById('remarksModal');
+  if (existingModal) {
+    existingModal.remove();
+    return;
+  }
+  
+  const modalHTML = `
+    <div class="modal-overlay" id="remarksModal" onclick="if(event.target===this) closeRemarksModal()">
+      <div class="modal-content" style="max-width:500px;">
+        <div class="modal-header">
+          <h3 class="modal-title">
+            <i class="fas fa-comment-alt" style="color:var(--primary);margin-right:0.5rem;"></i>
+            Admin Remarks
+          </h3>
+          <button class="btn-icon" onclick="closeRemarksModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          ${interview.adminRemarks ? `
+            <div style="background:var(--bg-body);border-radius:var(--radius-lg);padding:1.5rem;border-left:4px solid ${getRemarksBorderColor(interview.adminRemarks)};">
+              <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
+                <div style="width:40px;height:40px;background:${getRemarksBgColor(interview.adminRemarks)};color:${getRemarksTextColor(interview.adminRemarks)};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">
+                  <i class="fas ${getRemarksIcon(interview.adminRemarks)}"></i>
+                </div>
+                <div>
+                  <h4 style="margin:0;color:var(--text-primary);font-size:1.1rem;">Admin Feedback</h4>
+                  <p style="margin:0;color:var(--text-muted);font-size:0.85rem;">
+                    ${new Date(interview.createdAt).toLocaleDateString('en-US', { 
+                      year: 'numeric', month: 'short', day: 'numeric' 
+                    })}
+                  </p>
+                </div>
+              </div>
+              <div style="color:var(--text-secondary);line-height:1.6;font-size:0.95rem;">
+                ${interview.adminRemarks.replace(/\n/g, '<br>')}
+              </div>
+            </div>
+          ` : `
+            <div style="text-align:center;padding:3rem 2rem;background:var(--bg-body);border-radius:var(--radius-lg);border:2px dashed var(--border);">
+              <i class="fas fa-comment-slash" style="font-size:3rem;color:var(--text-muted);margin-bottom:1rem;display:block;"></i>
+              <h4 style="color:var(--text-primary);margin-bottom:0.5rem;">No Admin Feedback Yet</h4>
+              <p style="color:var(--text-muted);margin:0;font-size:0.9rem;">
+                The admin hasn't provided any remarks for this interview yet.
+              </p>
+            </div>
+          `}
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeRemarksModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeRemarksModal() {
+  document.getElementById('remarksModal')?.remove();
+}
+
+function getRemarksBorderColor(remarks) {
+  const btnClass = getRemarksBtnClass(remarks);
+  if (btnClass === 'btn-success') return 'var(--success)';
+  if (btnClass === 'btn-danger') return 'var(--danger)';
+  if (btnClass === 'btn-warning') return 'var(--warning)';
+  return 'var(--border)';
+}
+
+function getRemarksBgColor(remarks) {
+  const btnClass = getRemarksBtnClass(remarks);
+  if (btnClass === 'btn-success') return 'var(--success-light)';
+  if (btnClass === 'btn-danger') return 'var(--danger-light)';
+  if (btnClass === 'btn-warning') return 'var(--warning-light)';
+  return 'var(--bg-body)';
+}
+
+function getRemarksTextColor(remarks) {
+  const btnClass = getRemarksBtnClass(remarks);
+  if (btnClass === 'btn-success') return 'var(--success)';
+  if (btnClass === 'btn-danger') return 'var(--danger)';
+  if (btnClass === 'btn-warning') return 'var(--warning)';
+  return 'var(--text-primary)';
+}
+
+function getRemarksIcon(remarks) {
+  const btnClass = getRemarksBtnClass(remarks);
+  if (btnClass === 'btn-success') return 'fa-thumbs-up';
+  if (btnClass === 'btn-danger') return 'fa-thumbs-down';
+  if (btnClass === 'btn-warning') return 'fa-balance-scale';
+  return 'fa-comment';
 }
 
 function viewInterviewDetails(interviewId) {
@@ -1898,3 +2018,5 @@ window.renderProfileSettings = renderProfileSettings;
 window.loadAndRenderAssessments = loadAndRenderAssessments;
 window.loadInterviewHistory  = loadInterviewHistory;
 window.viewInterviewDetails  = viewInterviewDetails;
+window.toggleRemarks         = toggleRemarks;
+window.closeRemarksModal     = closeRemarksModal;
