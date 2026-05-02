@@ -53,6 +53,7 @@
       <a href="#" class="sidebar-link" data-page="applied-jobs"><i class="fas fa-check-circle"></i><span>Applied Jobs</span></a>
       <a href="#" class="sidebar-link" data-page="resume"><i class="fas fa-file-alt"></i><span>Resume</span></a>
       <a href="ai-interview.html" class="sidebar-link"><i class="fas fa-video"></i><span>AI Interview</span></a>
+      <a href="#" class="sidebar-link" data-page="interview-history"><i class="fas fa-history"></i><span>Interview History</span></a>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-title">ACCOUNT</div>
@@ -390,6 +391,28 @@
           <i class="fas fa-brain"></i> AI Analysis Results
         </h3>
         <div id="resumeAnalysisContent"></div>
+      </div>
+    </div>
+
+    <!-- Interview History Page -->
+    <div class="page-content" id="interview-history-page">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Interview History</h2>
+          <p class="page-subtitle">View your past AI interview results and performance</p>
+        </div>
+        <div class="page-actions">
+          <a href="ai-interview.html" class="btn btn-primary">
+            <i class="fas fa-video"></i> Take New Interview
+          </a>
+        </div>
+      </div>
+
+      <div id="interviewHistoryContainer">
+        <div style="text-align:center;padding:3rem;color:var(--text-muted);">
+          <i class="fas fa-spinner fa-spin" style="font-size:2rem;color:var(--primary);margin-bottom:1rem;display:block;"></i>
+          <p>Loading interview history...</p>
+        </div>
       </div>
     </div>
 

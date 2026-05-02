@@ -15,6 +15,7 @@ const notificationSchema = new mongoose.Schema({
       'certificate_request',   // user requests certificate
       'job_application',       // user applies to a job
       'assessment_completed',  // user completes an assessment
+      'interview_completed',   // user completes an interview
       // ── User receives ──────────────────────────────
       'enrollment_approved',
       'enrollment_rejected',
@@ -24,6 +25,8 @@ const notificationSchema = new mongoose.Schema({
       'job_rejected',
       'job_shortlisted',
       'job_reviewed',
+      'interview_result',      // user receives interview result
+      'interview_warning',     // user scored below qualifying mark
       // ── Generic ────────────────────────────────────
       'general'
     ],

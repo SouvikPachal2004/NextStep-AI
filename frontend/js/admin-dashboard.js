@@ -11,6 +11,9 @@ function initializeAdminDashboard() {
   
   // Setup event listeners
   setupEventListeners();
+  
+  // Setup interview filters
+  setupInterviewFilters();
 }
 
 // ===== DATA LOADING =====
@@ -584,6 +587,14 @@ function handleSearch(query, type) {
       );
       renderCertificatesTable(filteredCerts);
       break;
+
+    case 'interviews':
+      const filteredInterviews = (window.allInterviews || []).filter(i =>
+        (i.user?.name || '').toLowerCase().includes(query) ||
+        (i.user?.email || '').toLowerCase().includes(query)
+      );
+      renderInterviewsTable(filteredInterviews);
+      break;
   }
 }
 
@@ -1029,3 +1040,375 @@ function renderGrowthChart(users, courses, enrollments) {
 
 // Export function
 window.loadAnalyticsData = loadAnalyticsData;
+
+// ===== INTERVIEW MANAGEMENT =====
+async function loadInterviewData() {
+  try {
+    const token = getAuthToken();
+    const headers = { 'Authorization': `Bearer ${token}` };
+    
+    // Load interview statistics
+    const statsRes = await fetch(`${API_URL}/interview/stats`, { headers });
+    if (statsRes.ok) {
+      const statsData = await statsRes.json();
+      const stats = statsData.data || {};
+      
+      // Update stat cards
+      document.getElementById('total-interviews').textContent = stats.total || 0;
+      document.getElementById('passed-interviews').textContent = stats.passed || 0;
+      document.getElementById('failed-interviews').textContent = stats.failed || 0;
+      document.getElementById('avg-interview-score').textContent = `${stats.avgScore || 0}%`;
+      document.getElementById('pass-rate').textContent = `${stats.passRate || 0}%`;
+      document.getElementById('qualifying-mark-display').textContent = `${stats.qualifyingMark || 60}% required`;
+    }
+    
+    // Load all interviews
+    const interviewsRes = await fetch(`${API_URL}/interview/all`, { headers });
+    if (interviewsRes.ok) {
+      const interviewsData = await interviewsRes.json();
+      window.allInterviews = interviewsData.data || [];
+      renderInterviewsTable(window.allInterviews);
+    }
+    
+  } catch (error) {
+    console.error('Error loading interview data:', error);
+    showToast('Failed to load interview data', 'error');
+  }
+}
+
+function renderInterviewsTable(interviews) {
+  const tbody = document.getElementById('interviewsTableBody');
+  if (!tbody) return;
+  
+  if (interviews.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted)">No interviews found</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = interviews.map(interview => {
+    const user = interview.user || {};
+    const score = interview.scores?.overall || 0;
+    const passed = interview.passed;
+    const qualifyingMark = interview.qualifyingMark || 60;
+    const date = new Date(interview.createdAt).toLocaleDateString('en-US', { 
+      month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' 
+    });
+    const duration = Math.floor(interview.duration / 60);
+    const answered = interview.answeredQuestions || 0;
+    const total = interview.totalQuestions || 0;
+    const skipped = interview.skippedQuestions || 0;
+    
+    const statusBadge = passed 
+      ? `<span class="badge badge-success"><i class="fas fa-check"></i> Passed (${score}%)</span>`
+      : `<span class="badge badge-danger"><i class="fas fa-exclamation-triangle"></i> Below Mark (${score}%)</span>`;
+    
+    const warningIcon = !passed 
+      ? `<i class="fas fa-exclamation-triangle" style="color:var(--warning);margin-left:0.5rem;" title="Student scored below qualifying mark - consider reaching out"></i>`
+      : '';
+    
+    return `
+      <tr ${!passed ? 'style="background:rgba(239,68,68,0.05);"' : ''}>
+        <td>
+          <div class="table-user">
+            <div class="avatar avatar-sm" style="background:linear-gradient(135deg,#6C3CE1,#8B5CF6)">
+              ${(user.name || 'U').charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <div class="table-user-name">${user.name || 'Unknown Student'}${warningIcon}</div>
+              <div class="table-user-id">${user.email || ''}</div>
+            </div>
+          </div>
+        </td>
+        <td>${date}</td>
+        <td>${duration} min</td>
+        <td>
+          <div style="font-size:0.875rem;">
+            <div style="color:var(--text-primary);font-weight:600;">${answered}/${total} answered</div>
+            ${skipped > 0 ? `<div style="color:var(--warning);font-size:0.8rem;">${skipped} skipped</div>` : ''}
+          </div>
+        </td>
+        <td>
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <div style="position:relative;width:40px;height:40px;">
+              <svg width="40" height="40" style="transform:rotate(-90deg);">
+                <circle cx="20" cy="20" r="16" fill="none" stroke="var(--border)" stroke-width="3"/>
+                <circle cx="20" cy="20" r="16" fill="none" stroke="${passed ? '#10B981' : '#EF4444'}" stroke-width="3" 
+                        stroke-dasharray="${2 * Math.PI * 16}" 
+                        stroke-dashoffset="${2 * Math.PI * 16 * (1 - score / 100)}"/>
+              </svg>
+              <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:0.7rem;font-weight:700;color:${passed ? '#10B981' : '#EF4444'};">
+                ${score}%
+              </div>
+            </div>
+            <div style="font-size:0.8rem;color:var(--text-secondary);">
+              <div>C: ${interview.scores?.communication || 0}%</div>
+              <div>T: ${interview.scores?.technical || 0}%</div>
+              <div>P: ${interview.scores?.professionalism || 0}%</div>
+            </div>
+          </div>
+        </td>
+        <td>${statusBadge}</td>
+        <td>
+          <div class="table-actions">
+            <button class="btn-icon btn-sm" onclick="viewInterviewResult('${interview._id}')" title="View Details">
+              <i class="fas fa-eye"></i>
+            </button>
+            ${!passed ? `
+              <button class="btn-icon btn-sm" onclick="contactStudent('${user._id}', '${user.name}', '${user.email}', ${score})" title="Contact Student" style="color:var(--warning);">
+                <i class="fas fa-envelope"></i>
+              </button>
+            ` : ''}
+            <button class="btn-icon btn-sm" onclick="deleteInterview('${interview._id}')" title="Delete">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function viewInterviewResult(interviewId) {
+  const interview = window.allInterviews?.find(i => i._id === interviewId);
+  if (!interview) {
+    showToast('Interview not found', 'error');
+    return;
+  }
+  
+  const user = interview.user || {};
+  const score = interview.scores?.overall || 0;
+  const passed = interview.passed;
+  const date = new Date(interview.createdAt).toLocaleDateString('en-US', { 
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+  });
+  
+  const modalHTML = `
+    <div class="modal-overlay" id="interviewModal" onclick="if(event.target===this) closeInterviewModal()">
+      <div class="modal-content" style="max-width:700px;">
+        <div class="modal-header">
+          <h3 class="modal-title">Interview Results - ${user.name || 'Unknown Student'}</h3>
+          <button class="btn-icon" onclick="closeInterviewModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <!-- Student Info -->
+          <div style="background:var(--bg-body);padding:1.5rem;border-radius:var(--radius-lg);margin-bottom:1.5rem;">
+            <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;">
+              <div class="avatar avatar-lg" style="background:linear-gradient(135deg,#6C3CE1,#8B5CF6)">
+                ${(user.name || 'U').charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <h4 style="margin:0;color:var(--text-primary);">${user.name || 'Unknown Student'}</h4>
+                <p style="margin:0;color:var(--text-secondary);">${user.email || ''}</p>
+                <p style="margin:0;font-size:0.875rem;color:var(--text-muted);">Completed on ${date}</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Scores -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;">
+            <div style="text-align:center;padding:1rem;background:var(--primary-soft);border-radius:var(--radius-lg);">
+              <div style="font-size:1.5rem;font-weight:800;color:var(--primary);">${score}%</div>
+              <div style="font-size:0.8rem;color:var(--text-secondary);">Overall</div>
+            </div>
+            <div style="text-align:center;padding:1rem;background:var(--secondary-soft);border-radius:var(--radius-lg);">
+              <div style="font-size:1.5rem;font-weight:800;color:var(--secondary);">${interview.scores?.communication || 0}%</div>
+              <div style="font-size:0.8rem;color:var(--text-secondary);">Communication</div>
+            </div>
+            <div style="text-align:center;padding:1rem;background:var(--success-light);border-radius:var(--radius-lg);">
+              <div style="font-size:1.5rem;font-weight:800;color:var(--success);">${interview.scores?.technical || 0}%</div>
+              <div style="font-size:0.8rem;color:var(--text-secondary);">Technical</div>
+            </div>
+            <div style="text-align:center;padding:1rem;background:rgba(249,115,22,0.1);border-radius:var(--radius-lg);">
+              <div style="font-size:1.5rem;font-weight:800;color:#F97316;">${interview.scores?.professionalism || 0}%</div>
+              <div style="font-size:0.8rem;color:var(--text-secondary);">Professional</div>
+            </div>
+          </div>
+          
+          <!-- Performance Stats -->
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;">
+            <div style="padding:1rem;border:1px solid var(--border);border-radius:var(--radius-lg);">
+              <div style="font-size:1.2rem;font-weight:700;color:var(--text-primary);">${interview.answeredQuestions || 0}/${interview.totalQuestions || 0}</div>
+              <div style="font-size:0.8rem;color:var(--text-secondary);">Questions Answered</div>
+            </div>
+            <div style="padding:1rem;border:1px solid var(--border);border-radius:var(--radius-lg);">
+              <div style="font-size:1.2rem;font-weight:700;color:var(--text-primary);">${interview.avgResponseTime || 0}s</div>
+              <div style="font-size:0.8rem;color:var(--text-secondary);">Avg Response Time</div>
+            </div>
+            <div style="padding:1rem;border:1px solid var(--border);border-radius:var(--radius-lg);">
+              <div style="font-size:1.2rem;font-weight:700;color:var(--text-primary);">${interview.completionRate || 0}%</div>
+              <div style="font-size:0.8rem;color:var(--text-secondary);">Completion Rate</div>
+            </div>
+          </div>
+          
+          <!-- Status Badge -->
+          <div style="text-align:center;margin-bottom:1.5rem;">
+            <span style="padding:0.75rem 2rem;border-radius:var(--radius-full);font-size:1rem;font-weight:700;background:${passed ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)'};color:${passed ? '#10B981' : '#EF4444'};border:2px solid ${passed ? '#10B981' : '#EF4444'};">
+              ${passed ? `✅ Passed - Above Qualifying Mark (${interview.qualifyingMark || 60}%)` : `⚠️ Below Qualifying Mark (${interview.qualifyingMark || 60}%)`}
+            </span>
+          </div>
+          
+          <!-- AI Feedback -->
+          ${interview.feedback ? `
+            <div style="background:var(--bg-body);padding:1.5rem;border-radius:var(--radius-lg);">
+              <h5 style="margin:0 0 1rem;color:var(--text-primary);"><i class="fas fa-robot" style="color:var(--primary);margin-right:0.5rem;"></i>AI Feedback</h5>
+              
+              ${interview.feedback.strengths?.length > 0 ? `
+                <div style="margin-bottom:1rem;">
+                  <h6 style="color:var(--success);margin:0 0 0.5rem;"><i class="fas fa-check-circle"></i> Strengths:</h6>
+                  <ul style="margin:0;padding-left:1.5rem;color:var(--text-secondary);">
+                    ${interview.feedback.strengths.map(s => `<li>${s}</li>`).join('')}
+                  </ul>
+                </div>
+              ` : ''}
+              
+              ${interview.feedback.improvements?.length > 0 ? `
+                <div style="margin-bottom:1rem;">
+                  <h6 style="color:var(--warning);margin:0 0 0.5rem;"><i class="fas fa-exclamation-triangle"></i> Areas for Improvement:</h6>
+                  <ul style="margin:0;padding-left:1.5rem;color:var(--text-secondary);">
+                    ${interview.feedback.improvements.map(i => `<li>${i}</li>`).join('')}
+                  </ul>
+                </div>
+              ` : ''}
+              
+              ${interview.feedback.recommendations?.length > 0 ? `
+                <div>
+                  <h6 style="color:var(--primary);margin:0 0 0.5rem;"><i class="fas fa-lightbulb"></i> Recommendations:</h6>
+                  <ul style="margin:0;padding-left:1.5rem;color:var(--text-secondary);">
+                    ${interview.feedback.recommendations.map(r => `<li>${r}</li>`).join('')}
+                  </ul>
+                </div>
+              ` : ''}
+            </div>
+          ` : ''}
+        </div>
+        <div class="modal-footer">
+          ${!passed ? `
+            <button class="btn btn-warning" onclick="contactStudent('${user._id}', '${user.name}', '${user.email}', ${score})">
+              <i class="fas fa-envelope"></i> Contact Student
+            </button>
+          ` : ''}
+          <button class="btn btn-outline" onclick="closeInterviewModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeInterviewModal() {
+  document.getElementById('interviewModal')?.remove();
+}
+
+function contactStudent(userId, userName, userEmail, score) {
+  const modalHTML = `
+    <div class="modal-overlay" id="contactModal" onclick="if(event.target===this) closeContactModal()">
+      <div class="modal-content" style="max-width:500px;">
+        <div class="modal-header">
+          <h3 class="modal-title">Contact Student - ${userName}</h3>
+          <button class="btn-icon" onclick="closeContactModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div style="background:rgba(239,68,68,0.1);padding:1rem;border-radius:var(--radius-lg);margin-bottom:1.5rem;border-left:4px solid #EF4444;">
+            <p style="margin:0;color:var(--text-primary);"><strong>Student scored ${score}% - Below qualifying mark</strong></p>
+            <p style="margin:0.5rem 0 0;font-size:0.875rem;color:var(--text-secondary);">Consider reaching out to provide support and guidance.</p>
+          </div>
+          
+          <div style="margin-bottom:1rem;">
+            <strong>Student Email:</strong> <a href="mailto:${userEmail}" style="color:var(--primary);">${userEmail}</a>
+          </div>
+          
+          <div style="background:var(--bg-body);padding:1rem;border-radius:var(--radius-lg);">
+            <h5 style="margin:0 0 0.5rem;">Suggested Actions:</h5>
+            <ul style="margin:0;padding-left:1.5rem;font-size:0.875rem;color:var(--text-secondary);">
+              <li>Send encouragement and schedule a follow-up session</li>
+              <li>Provide additional resources for interview preparation</li>
+              <li>Offer mock interview practice sessions</li>
+              <li>Share specific feedback based on their performance</li>
+            </ul>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeContactModal()">Cancel</button>
+          <a href="mailto:${userEmail}?subject=Interview Follow-up - NextStep AI&body=Hi ${userName},%0A%0AI noticed you recently completed an AI interview with us. I'd like to schedule a follow-up session to discuss your performance and provide some additional guidance.%0A%0ABest regards,%0ANextStep AI Team" class="btn btn-primary">
+            <i class="fas fa-envelope"></i> Send Email
+          </a>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeContactModal() {
+  document.getElementById('contactModal')?.remove();
+}
+
+async function deleteInterview(interviewId) {
+  if (!confirm('Are you sure you want to delete this interview record?')) return;
+  
+  try {
+    const token = getAuthToken();
+    const response = await fetch(`${API_URL}/interview/${interviewId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (response.ok) {
+      showToast('Interview deleted successfully', 'success');
+      loadInterviewData(); // Reload data
+    } else {
+      showToast('Failed to delete interview', 'error');
+    }
+  } catch (error) {
+    showToast('Error deleting interview', 'error');
+  }
+}
+
+// Filter interviews
+function filterInterviews() {
+  const filter = document.getElementById('interviewFilter')?.value || 'all';
+  const searchQuery = document.querySelector('.search-input[data-type="interviews"]')?.value.toLowerCase() || '';
+  
+  let filtered = window.allInterviews || [];
+  
+  // Apply filter
+  switch (filter) {
+    case 'passed':
+      filtered = filtered.filter(i => i.passed);
+      break;
+    case 'failed':
+      filtered = filtered.filter(i => !i.passed);
+      break;
+    case 'recent':
+      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      filtered = filtered.filter(i => new Date(i.createdAt) > weekAgo);
+      break;
+  }
+  
+  // Apply search
+  if (searchQuery) {
+    filtered = filtered.filter(i => 
+      (i.user?.name || '').toLowerCase().includes(searchQuery) ||
+      (i.user?.email || '').toLowerCase().includes(searchQuery)
+    );
+  }
+  
+  renderInterviewsTable(filtered);
+}
+
+// Setup interview filter listeners
+function setupInterviewFilters() {
+  document.getElementById('interviewFilter')?.addEventListener('change', filterInterviews);
+  document.querySelector('.search-input[data-type="interviews"]')?.addEventListener('input', filterInterviews);
+}
+
+// Export functions
+window.loadInterviewData = loadInterviewData;
+window.viewInterviewResult = viewInterviewResult;
+window.closeInterviewModal = closeInterviewModal;
+window.contactStudent = contactStudent;
+window.closeContactModal = closeContactModal;
+window.deleteInterview = deleteInterview;
+window.filterInterviews = filterInterviews;

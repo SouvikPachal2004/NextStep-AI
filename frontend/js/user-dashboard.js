@@ -46,6 +46,7 @@ const pageTitles = {
   'all-jobs':          'All Jobs',
   'applied-jobs':      'Applied Jobs',
   'resume':            'My Resume',
+  'interview-history': 'Interview History',
   'profile':           'My Profile'
 };
 
@@ -70,6 +71,7 @@ sidebarLinks.forEach(link => {
       if (page === 'certificates'      && typeof renderUserCertificates   === 'function') renderUserCertificates(window.userCertificates || []);
       if (page === 'all-jobs'          && typeof renderAllJobs            === 'function') renderAllJobs();
       if (page === 'applied-jobs'      && typeof renderAppliedJobs        === 'function') renderAppliedJobs();
+      if (page === 'interview-history' && typeof loadInterviewHistory     === 'function') loadInterviewHistory();
     } else {
       showToast('Page under construction', 'warning');
     }
@@ -1706,6 +1708,161 @@ function displayResumeAnalysis(analysis, jobRecommendations = [], courseRecommen
   }
 }
 
+// ===== INTERVIEW HISTORY =====
+async function loadInterviewHistory() {
+  const container = document.getElementById('interviewHistoryContainer');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div style="text-align:center;padding:3rem;color:var(--text-muted);">
+      <i class="fas fa-spinner fa-spin" style="font-size:2rem;color:var(--primary);margin-bottom:1rem;display:block;"></i>
+      <p>Loading interview history...</p>
+    </div>`;
+
+  try {
+    const token = getAuthToken();
+    const response = await fetch(`${API_URL}/interview/history`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const data = await response.json();
+    const interviews = data.data || [];
+
+    if (interviews.length === 0) {
+      container.innerHTML = `
+        <div style="text-align:center;padding:4rem 2rem;background:var(--bg-card);border-radius:var(--radius-lg);border:1px solid var(--border);">
+          <i class="fas fa-video" style="font-size:3rem;color:var(--primary);margin-bottom:1rem;display:block;"></i>
+          <h3 style="color:var(--text-primary);margin-bottom:0.5rem;">No Interview History</h3>
+          <p style="color:var(--text-muted);margin-bottom:1.5rem;">You haven't taken any AI interviews yet. Start your first interview to see results here.</p>
+          <a href="ai-interview.html" class="btn btn-primary">
+            <i class="fas fa-play-circle"></i> Take Your First Interview
+          </a>
+        </div>`;
+      return;
+    }
+
+    // Render interview history
+    container.innerHTML = `
+      <div class="section-card">
+        <div class="section-header" style="margin-bottom:1.5rem;">
+          <div>
+            <h3 class="section-title">Your Interview Results</h3>
+            <p class="section-subtitle">Track your progress and improvement over time</p>
+          </div>
+          <div style="display:flex;gap:1rem;align-items:center;">
+            <span style="font-size:0.875rem;color:var(--text-muted);">${interviews.length} interview${interviews.length !== 1 ? 's' : ''} completed</span>
+          </div>
+        </div>
+
+        <div style="display:grid;gap:1.5rem;">
+          ${interviews.map((interview, index) => {
+            const score = interview.scores?.overall || 0;
+            const passed = interview.passed;
+            const qualifyingMark = interview.qualifyingMark || 60;
+            const date = new Date(interview.createdAt).toLocaleDateString('en-US', { 
+              year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+            });
+            const duration = Math.floor(interview.duration / 60);
+            const answered = interview.answeredQuestions || 0;
+            const total = interview.totalQuestions || 0;
+            const skipped = interview.skippedQuestions || 0;
+            
+            const scoreColor = passed ? '#10B981' : '#EF4444';
+            const scoreBg = passed ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)';
+            
+            return `
+              <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;position:relative;overflow:hidden;">
+                <!-- Interview number badge -->
+                <div style="position:absolute;top:1rem;right:1rem;background:var(--primary-soft);color:var(--primary);padding:0.25rem 0.75rem;border-radius:var(--radius-full);font-size:0.8rem;font-weight:600;">
+                  Interview #${interviews.length - index}
+                </div>
+                
+                <div style="display:grid;grid-template-columns:auto 1fr auto;gap:1.5rem;align-items:center;">
+                  <!-- Score Circle -->
+                  <div style="position:relative;width:80px;height:80px;">
+                    <svg width="80" height="80" style="transform:rotate(-90deg);">
+                      <circle cx="40" cy="40" r="35" fill="none" stroke="var(--border)" stroke-width="6"/>
+                      <circle cx="40" cy="40" r="35" fill="none" stroke="${scoreColor}" stroke-width="6" 
+                              stroke-dasharray="${2 * Math.PI * 35}" 
+                              stroke-dashoffset="${2 * Math.PI * 35 * (1 - score / 100)}"
+                              style="transition:stroke-dashoffset 1s ease;"/>
+                    </svg>
+                    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">
+                      <div style="font-size:1.4rem;font-weight:800;color:${scoreColor};">${score}%</div>
+                      <div style="font-size:0.7rem;color:var(--text-muted);font-weight:600;">SCORE</div>
+                    </div>
+                  </div>
+                  
+                  <!-- Interview Details -->
+                  <div>
+                    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                      <h4 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin:0;">AI Interview Session</h4>
+                      <span style="padding:0.25rem 0.75rem;border-radius:var(--radius-full);font-size:0.75rem;font-weight:700;background:${scoreBg};color:${scoreColor};">
+                        ${passed ? `✅ Passed (≥${qualifyingMark}%)` : `❌ Below Mark (${qualifyingMark}%)`}
+                      </span>
+                    </div>
+                    
+                    <div style="display:flex;gap:1.5rem;margin-bottom:0.75rem;font-size:0.875rem;color:var(--text-secondary);">
+                      <span><i class="fas fa-calendar-alt" style="color:var(--primary);margin-right:0.4rem;"></i>${date}</span>
+                      <span><i class="fas fa-clock" style="color:var(--secondary);margin-right:0.4rem;"></i>${duration} min</span>
+                      <span><i class="fas fa-question-circle" style="color:var(--success);margin-right:0.4rem;"></i>${answered}/${total} answered</span>
+                      ${skipped > 0 ? `<span><i class="fas fa-forward" style="color:var(--warning);margin-right:0.4rem;"></i>${skipped} skipped</span>` : ''}
+                    </div>
+                    
+                    <!-- Sub-scores -->
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;">
+                      <div style="text-align:center;padding:0.5rem;background:var(--bg-body);border-radius:var(--radius-md);">
+                        <div style="font-size:0.9rem;font-weight:700;color:var(--primary);">${interview.scores?.communication || 0}%</div>
+                        <div style="font-size:0.7rem;color:var(--text-muted);">Communication</div>
+                      </div>
+                      <div style="text-align:center;padding:0.5rem;background:var(--bg-body);border-radius:var(--radius-md);">
+                        <div style="font-size:0.9rem;font-weight:700;color:var(--secondary);">${interview.scores?.technical || 0}%</div>
+                        <div style="font-size:0.7rem;color:var(--text-muted);">Technical</div>
+                      </div>
+                      <div style="text-align:center;padding:0.5rem;background:var(--bg-body);border-radius:var(--radius-md);">
+                        <div style="font-size:0.9rem;font-weight:700;color:var(--success);">${interview.scores?.professionalism || 0}%</div>
+                        <div style="font-size:0.7rem;color:var(--text-muted);">Professional</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Actions -->
+                  <div style="display:flex;flex-direction:column;gap:0.5rem;">
+                    <button class="btn btn-outline btn-sm" onclick="viewInterviewDetails('${interview._id}')">
+                      <i class="fas fa-eye"></i> View Details
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="window.location.href='ai-interview.html'">
+                      <i class="fas fa-redo"></i> Retake
+                    </button>
+                  </div>
+                </div>
+              </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+
+  } catch (error) {
+    console.error('Error loading interview history:', error);
+    container.innerHTML = `
+      <div style="text-align:center;padding:3rem;background:var(--bg-card);border-radius:var(--radius-lg);border:1px solid var(--border);">
+        <i class="fas fa-exclamation-circle" style="font-size:2.5rem;color:var(--danger);margin-bottom:1rem;display:block;"></i>
+        <h3 style="color:var(--text-primary);margin-bottom:0.5rem;">Failed to Load Interview History</h3>
+        <p style="color:var(--text-muted);margin-bottom:1.5rem;">Error: ${error.message}</p>
+        <button class="btn btn-primary btn-sm" onclick="loadInterviewHistory()">
+          <i class="fas fa-redo"></i> Retry
+        </button>
+      </div>`;
+  }
+}
+
+function viewInterviewDetails(interviewId) {
+  // For now, show a toast with the interview ID
+  // In the future, this could open a detailed modal or navigate to a detailed page
+  showToast(`Interview details for ID: ${interviewId}`, 'info');
+}
+
 // ===== GLOBAL EXPORTS =====
 window.continueCourse        = continueCourse;
 window.viewCertificate       = viewCertificate;
@@ -1721,3 +1878,5 @@ window.renderJobBoard        = renderJobBoard;
 window.renderProgressTracking= renderProgressTracking;
 window.renderProfileSettings = renderProfileSettings;
 window.loadAndRenderAssessments = loadAndRenderAssessments;
+window.loadInterviewHistory  = loadInterviewHistory;
+window.viewInterviewDetails  = viewInterviewDetails;

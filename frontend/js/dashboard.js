@@ -44,6 +44,8 @@ const pageTitles = {
   'enrollments': 'Enrollment Management',
   'jobs': 'Job Posts Management',
   'assessments': 'Assessment Management',
+  'interviews': 'Interview Management',
+  'certificates': 'Certificate Management',
   'analytics': 'Analytics & Reports',
   'settings': 'System Settings'
 };
@@ -73,6 +75,9 @@ sidebarLinks.forEach(link => {
       }
       if (typeof window.loadAnalyticsData === 'function' && page === 'analytics') {
         window.loadAnalyticsData();
+      }
+      if (typeof window.loadInterviewData === 'function' && page === 'interviews') {
+        window.loadInterviewData();
       }
     } else {
       showToast('Page under construction', 'warning');

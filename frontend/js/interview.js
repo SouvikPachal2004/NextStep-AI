@@ -547,6 +547,7 @@ async function submitInterview() {
       answers: interviewState.answers,
       duration: totalDuration,
       settings: interviewState.settings,
+      totalQuestions: interviewState.questions.length,
       resumeAnalysis: interviewState.resumeAnalysis
     })
   });
@@ -560,32 +561,62 @@ async function submitInterview() {
 }
 
 function calculateLocalResults() {
-  // Calculate results based on actual performance
-  const totalQuestions = interviewState.questions.length;
+  // Calculate results based on ACTUAL answers only - no random inflation
+  const totalQuestions = interviewState.questions.length || 1;
   const answeredQuestions = interviewState.answers.filter(a => !a.skipped).length;
   const skippedQuestions = interviewState.answers.filter(a => a.skipped).length;
   
-  // Base score on completion rate
+  // If nothing answered, score is 0
+  if (answeredQuestions === 0) {
+    return {
+      overallScore: 0,
+      communicationScore: 0,
+      technicalScore: 0,
+      professionalismScore: 0,
+      avgResponseTime: 0,
+      completionRate: 0,
+      answeredQuestions: 0,
+      skippedQuestions,
+      passed: false,
+      qualifyingMark: 60,
+      feedback: {
+        strengths: ['You attempted the interview'],
+        improvements: ['Try to answer all questions', 'Provide detailed responses', 'Practice before your next session'],
+        recommendations: ['Review common interview questions', 'Use the STAR method for behavioral questions', 'Record yourself to improve confidence']
+      }
+    };
+  }
+  
+  // Base score purely from completion rate (0–100)
   const completionRate = answeredQuestions / totalQuestions;
   const baseScore = Math.round(completionRate * 100);
   
-  // Calculate average response time
-  const answeredWithDuration = interviewState.answers.filter(a => !a.skipped && a.duration);
+  // Average response time
+  const answeredWithDuration = interviewState.answers.filter(a => !a.skipped && a.duration > 0);
   const avgResponseTime = answeredWithDuration.length > 0
     ? Math.round(answeredWithDuration.reduce((sum, a) => sum + a.duration, 0) / answeredWithDuration.length)
     : 0;
   
-  // Adjust scores based on performance
-  const communicationScore = Math.min(100, baseScore + Math.floor(Math.random() * 10));
-  const technicalScore = Math.max(0, baseScore - Math.floor(Math.random() * 15));
-  const professionalismScore = Math.min(100, baseScore + Math.floor(Math.random() * 5));
+  // Quality bonus for thorough answers (no random)
+  const goodAnswers = answeredWithDuration.filter(a => a.duration >= 30).length;
+  const qualityBonus = answeredWithDuration.length > 0
+    ? Math.round((goodAnswers / answeredWithDuration.length) * 10)
+    : 0;
   
-  // Overall score is weighted average
+  // Sub-scores (no random inflation)
+  const communicationScore  = Math.min(100, Math.max(0, baseScore + qualityBonus));
+  const technicalScore      = Math.min(100, Math.max(0, baseScore));
+  const professionalismScore = Math.min(100, Math.max(0, baseScore + Math.round(qualityBonus / 2)));
+  
+  // Weighted overall
   const overallScore = Math.round(
-    (communicationScore * 0.3) + 
-    (technicalScore * 0.4) + 
+    (communicationScore * 0.3) +
+    (technicalScore * 0.4) +
     (professionalismScore * 0.3)
   );
+
+  const QUALIFYING_MARK = 60;
+  const passed = overallScore >= QUALIFYING_MARK;
   
   return {
     overallScore,
@@ -596,6 +627,8 @@ function calculateLocalResults() {
     completionRate: Math.round(completionRate * 100),
     answeredQuestions,
     skippedQuestions,
+    passed,
+    qualifyingMark: QUALIFYING_MARK,
     feedback: {
       strengths: generateStrengths(overallScore, completionRate),
       improvements: generateImprovements(skippedQuestions, avgResponseTime),
@@ -661,6 +694,31 @@ function displayResults(results) {
   const circumference = 2 * Math.PI * 90;
   const offset = circumference - (results.overallScore / 100) * circumference;
   document.getElementById('scoreCircle')?.setAttribute('stroke-dashoffset', offset);
+
+  // Show pass/fail badge
+  const scoreEl = document.getElementById('finalScore');
+  if (scoreEl) {
+    const qualifyingMark = results.qualifyingMark || 60;
+    const passed = results.passed !== undefined ? results.passed : results.overallScore >= qualifyingMark;
+    const badge = document.createElement('div');
+    badge.style.cssText = `
+      margin-top: 8px;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: inline-block;
+      background: ${passed ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)'};
+      color: ${passed ? '#10b981' : '#ef4444'};
+      border: 1px solid ${passed ? '#10b981' : '#ef4444'};
+    `;
+    badge.textContent = passed ? `✅ Passed (≥${qualifyingMark}%)` : `❌ Below Qualifying Mark (${qualifyingMark}%)`;
+    // Remove old badge if exists
+    const oldBadge = document.getElementById('passBadge');
+    if (oldBadge) oldBadge.remove();
+    badge.id = 'passBadge';
+    scoreEl.parentElement.appendChild(badge);
+  }
   
   // Update feedback
   const feedbackEl = document.getElementById('aiFeedback');
