@@ -431,6 +431,80 @@
   animation: pulse 2s infinite;
 }
 
+/* AI Voice Controls */
+.ai-voice-controls {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.ai-voice-control {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+  border: 1px solid var(--border);
+}
+
+.ai-voice-control:hover {
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.ai-voice-control:active {
+  transform: translateY(0);
+}
+
+.ai-voice-control.speaking {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  animation: pulse 1.5s infinite;
+}
+
+/* Speaking Animation for AI Avatar */
+.ai-avatar-circle.speaking-animation {
+  animation: speaking-pulse 1s infinite alternate;
+  box-shadow: 0 6px 24px rgba(108,60,225,0.6), 0 0 20px rgba(108,60,225,0.4);
+}
+
+@keyframes speaking-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 6px 24px rgba(108,60,225,0.4);
+  }
+  100% {
+    transform: scale(1.05);
+    box-shadow: 0 8px 32px rgba(108,60,225,0.6), 0 0 25px rgba(108,60,225,0.5);
+  }
+}
+
+/* Voice Status Indicators */
+.ai-status-text {
+  position: relative;
+}
+
+.ai-status.speaking .ai-status-text::before {
+  background: var(--primary);
+  animation: speaking-indicator 0.8s infinite;
+}
+
+@keyframes speaking-indicator {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.2); }
+}
+
 /* Question Display */
 .question-display {
   background: var(--bg-card);

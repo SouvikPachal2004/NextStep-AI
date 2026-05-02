@@ -114,6 +114,10 @@
                 <i class="fas fa-circle-notch fa-spin"></i>
                 <span>Checking Microphone...</span>
               </div>
+              <div class="check-item" id="checkVoice">
+                <i class="fas fa-circle-notch fa-spin"></i>
+                <span>Checking AI Voice...</span>
+              </div>
               <div class="check-item error" id="checkResume">
                 <i class="fas fa-times-circle"></i>
                 <span>Resume Not Uploaded</span>
@@ -181,11 +185,23 @@
       <!-- Left Side: Question Details -->
       <div class="ai-interviewer-section">
         <div class="ai-avatar">
-          <div class="ai-avatar-circle">
+          <div class="ai-avatar-circle speaking-animation">
             <i class="fas fa-robot"></i>
           </div>
           <div class="ai-status">
-            <span class="ai-status-text" id="aiStatus">Listening...</span>
+            <span class="ai-status-text" id="aiStatus">Preparing question...</span>
+          </div>
+          <!-- AI Voice Controls -->
+          <div class="ai-voice-controls">
+            <button class="ai-voice-control" id="replayQuestionBtn" title="Replay Question">
+              <i class="fas fa-redo"></i>
+            </button>
+            <button class="ai-voice-control" id="pauseVoiceBtn" title="Pause/Resume AI Voice">
+              <i class="fas fa-pause"></i>
+            </button>
+            <button class="ai-voice-control" id="stopVoiceBtn" title="Stop AI Voice">
+              <i class="fas fa-stop"></i>
+            </button>
           </div>
         </div>
 

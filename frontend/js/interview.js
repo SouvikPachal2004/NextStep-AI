@@ -20,7 +20,21 @@ let interviewState = {
   startTime: null,
   timerInterval: null,
   answerStartTime: null,
-  isRecording: false
+  isRecording: false,
+  // AI Voice State
+  aiVoice: {
+    synthesis: null,
+    currentUtterance: null,
+    isSpeaking: false,
+    isPaused: false,
+    voices: [],
+    selectedVoice: null,
+    settings: {
+      rate: 0.9,        // Speaking speed (0.1 to 10)
+      pitch: 1.0,       // Voice pitch (0 to 2)
+      volume: 0.8       // Volume (0 to 1)
+    }
+  }
 };
 
 // Initialize on page load
@@ -31,6 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializeInterview() {
   setupEventListeners();
   checkSystemRequirements();
+  initializeAIVoice();
 }
 
 // ===== EVENT LISTENERS =====
@@ -76,10 +91,186 @@ function setupEventListeners() {
   document.getElementById('answerBtn')?.addEventListener('click', toggleAnswering);
   document.getElementById('nextBtn')?.addEventListener('click', nextQuestion);
   
+  // AI Voice controls
+  document.getElementById('replayQuestionBtn')?.addEventListener('click', replayCurrentQuestion);
+  document.getElementById('pauseVoiceBtn')?.addEventListener('click', toggleAIVoice);
+  document.getElementById('stopVoiceBtn')?.addEventListener('click', stopAIVoice);
+  
   // Results actions
   document.getElementById('viewDetailedReport')?.addEventListener('click', viewDetailedReport);
   document.getElementById('retakeInterview')?.addEventListener('click', retakeInterview);
   document.getElementById('backToDashboard')?.addEventListener('click', backToDashboard);
+}
+
+// ===== AI VOICE SYSTEM =====
+function initializeAIVoice() {
+  // Check if speech synthesis is supported
+  if ('speechSynthesis' in window) {
+    interviewState.aiVoice.synthesis = window.speechSynthesis;
+    
+    // Load available voices
+    loadVoices();
+    
+    // Listen for voice changes (some browsers load voices asynchronously)
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+      speechSynthesis.onvoiceschanged = loadVoices;
+    }
+    
+    console.log('AI Voice system initialized');
+  } else {
+    console.warn('Speech synthesis not supported in this browser');
+    showToast('AI Voice not supported in this browser', 'warning');
+  }
+}
+
+function loadVoices() {
+  const voices = speechSynthesis.getVoices();
+  interviewState.aiVoice.voices = voices;
+  
+  // Try to find a good English voice (prefer female voices for interviews)
+  const preferredVoices = [
+    'Google UK English Female',
+    'Microsoft Zira - English (United States)',
+    'Alex',
+    'Samantha',
+    'Karen',
+    'Moira'
+  ];
+  
+  let selectedVoice = null;
+  
+  // First try to find preferred voices
+  for (const preferred of preferredVoices) {
+    selectedVoice = voices.find(voice => voice.name.includes(preferred));
+    if (selectedVoice) break;
+  }
+  
+  // If no preferred voice found, use first English voice
+  if (!selectedVoice) {
+    selectedVoice = voices.find(voice => 
+      voice.lang.startsWith('en') && voice.name.toLowerCase().includes('female')
+    ) || voices.find(voice => voice.lang.startsWith('en'));
+  }
+  
+  // Fallback to first available voice
+  if (!selectedVoice && voices.length > 0) {
+    selectedVoice = voices[0];
+  }
+  
+  interviewState.aiVoice.selectedVoice = selectedVoice;
+  
+  if (selectedVoice) {
+    console.log('AI Voice selected:', selectedVoice.name);
+  }
+}
+
+function speakText(text, options = {}) {
+  return new Promise((resolve, reject) => {
+    if (!interviewState.aiVoice.synthesis) {
+      reject(new Error('Speech synthesis not available'));
+      return;
+    }
+    
+    // Stop any current speech
+    stopAIVoice();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Apply voice settings
+    if (interviewState.aiVoice.selectedVoice) {
+      utterance.voice = interviewState.aiVoice.selectedVoice;
+    }
+    
+    utterance.rate = options.rate || interviewState.aiVoice.settings.rate;
+    utterance.pitch = options.pitch || interviewState.aiVoice.settings.pitch;
+    utterance.volume = options.volume || interviewState.aiVoice.settings.volume;
+    
+    // Event handlers
+    utterance.onstart = () => {
+      interviewState.aiVoice.isSpeaking = true;
+      interviewState.aiVoice.currentUtterance = utterance;
+      updateAIVoiceUI(true);
+    };
+    
+    utterance.onend = () => {
+      interviewState.aiVoice.isSpeaking = false;
+      interviewState.aiVoice.currentUtterance = null;
+      updateAIVoiceUI(false);
+      resolve();
+    };
+    
+    utterance.onerror = (event) => {
+      interviewState.aiVoice.isSpeaking = false;
+      interviewState.aiVoice.currentUtterance = null;
+      updateAIVoiceUI(false);
+      reject(new Error('Speech synthesis error: ' + event.error));
+    };
+    
+    // Start speaking
+    interviewState.aiVoice.synthesis.speak(utterance);
+  });
+}
+
+function stopAIVoice() {
+  if (interviewState.aiVoice.synthesis) {
+    interviewState.aiVoice.synthesis.cancel();
+    interviewState.aiVoice.isSpeaking = false;
+    interviewState.aiVoice.currentUtterance = null;
+    updateAIVoiceUI(false);
+  }
+}
+
+function pauseAIVoice() {
+  if (interviewState.aiVoice.synthesis && interviewState.aiVoice.isSpeaking) {
+    interviewState.aiVoice.synthesis.pause();
+    interviewState.aiVoice.isPaused = true;
+    updateAIVoiceUI(false);
+  }
+}
+
+function resumeAIVoice() {
+  if (interviewState.aiVoice.synthesis && interviewState.aiVoice.isPaused) {
+    interviewState.aiVoice.synthesis.resume();
+    interviewState.aiVoice.isPaused = false;
+    updateAIVoiceUI(true);
+  }
+}
+
+function updateAIVoiceUI(isSpeaking) {
+  // Update AI status text
+  const aiStatus = document.getElementById('aiStatus');
+  if (aiStatus) {
+    if (isSpeaking) {
+      aiStatus.textContent = '🎤 AI is asking...';
+      aiStatus.style.color = 'var(--primary)';
+    } else if (interviewState.isRecording) {
+      aiStatus.textContent = '🎧 Listening to your answer...';
+      aiStatus.style.color = 'var(--success)';
+    } else {
+      aiStatus.textContent = '💭 Waiting for your response...';
+      aiStatus.style.color = 'var(--text-muted)';
+    }
+  }
+  
+  // Update voice controls
+  const voiceControls = document.querySelectorAll('.ai-voice-control');
+  voiceControls.forEach(control => {
+    if (isSpeaking) {
+      control.classList.add('speaking');
+    } else {
+      control.classList.remove('speaking');
+    }
+  });
+  
+  // Add speaking animation to AI avatar if exists
+  const aiAvatar = document.querySelector('.ai-avatar');
+  if (aiAvatar) {
+    if (isSpeaking) {
+      aiAvatar.classList.add('speaking');
+    } else {
+      aiAvatar.classList.remove('speaking');
+    }
+  }
 }
 
 // ===== SYSTEM CHECK =====
@@ -100,6 +291,13 @@ async function checkSystemRequirements() {
     updateCheckItem('checkMic', 'success', 'Microphone Access');
   } catch (error) {
     updateCheckItem('checkMic', 'error', 'Microphone Access - Denied');
+  }
+  
+  // Check AI Voice Support
+  if ('speechSynthesis' in window) {
+    updateCheckItem('checkVoice', 'success', 'AI Voice Support');
+  } else {
+    updateCheckItem('checkVoice', 'warning', 'AI Voice Not Supported');
   }
   
   // Resume check (will update when uploaded)
@@ -126,7 +324,19 @@ function checkStartButtonState() {
   const micOk = document.getElementById('checkMic')?.classList.contains('success');
   const resumeOk = interviewState.resumeUploaded;
   
+  // Voice is optional - interview can work without it
+  const voiceOk = document.getElementById('checkVoice')?.classList.contains('success') || 
+                  document.getElementById('checkVoice')?.classList.contains('warning');
+  
   btn.disabled = !(cameraOk && micOk && resumeOk);
+  
+  // Show voice status in button if voice is not available
+  if (!document.getElementById('checkVoice')?.classList.contains('success')) {
+    const originalText = btn.innerHTML;
+    if (!originalText.includes('(Text Only)')) {
+      btn.innerHTML = originalText.replace('Start Interview', 'Start Interview (Text Only)');
+    }
+  }
 }
 
 // ===== CAMERA & MIC =====
@@ -336,10 +546,32 @@ async function startInterview() {
   interviewState.startTime = Date.now();
   startTimer();
   
+  // AI Introduction
+  await speakIntroduction();
+  
   // Show first question
-  showQuestion(0);
+  await showQuestion(0);
   
   showToast('Interview started! Good luck!', 'success');
+}
+
+async function speakIntroduction() {
+  try {
+    const introText = "Hello! I'm your AI interviewer for today. I'll be asking you a series of questions to assess your skills and experience. Please take your time to answer each question thoughtfully. Let's begin!";
+    
+    updateAIVoiceUI(true);
+    await speakText(introText, {
+      rate: 0.9,
+      pitch: 1.2,
+      volume: 0.9
+    });
+    
+    // Small pause before first question
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+  } catch (error) {
+    console.error('Error speaking introduction:', error);
+  }
 }
 
 function switchScreen(screenName) {
@@ -395,7 +627,7 @@ function stopTimer() {
 }
 
 // ===== QUESTIONS =====
-function showQuestion(index) {
+async function showQuestion(index) {
   if (index >= interviewState.questions.length) {
     endInterview();
     return;
@@ -427,6 +659,86 @@ function showQuestion(index) {
   
   interviewState.isRecording = false;
   interviewState.answerStartTime = null;
+  
+  // AI speaks the question
+  await speakQuestion(question);
+}
+
+async function speakQuestion(question) {
+  try {
+    // Create a more natural question prompt
+    const questionIntro = getQuestionIntro(interviewState.currentQuestionIndex, interviewState.questions.length);
+    const fullPrompt = `${questionIntro} ${question.text}`;
+    
+    // Show that AI is speaking
+    updateAIVoiceUI(true);
+    
+    // Speak the question
+    await speakText(fullPrompt, {
+      rate: 0.85,  // Slightly slower for clarity
+      pitch: 1.1   // Slightly higher pitch for friendliness
+    });
+    
+    // After speaking, show ready state
+    updateAIVoiceUI(false);
+    
+    // Show toast to indicate user can start answering
+    showToast('You can now start answering', 'info');
+    
+  } catch (error) {
+    console.error('Error speaking question:', error);
+    showToast('AI voice unavailable, please read the question', 'warning');
+  }
+}
+
+function getQuestionIntro(currentIndex, totalQuestions) {
+  const intros = [
+    // First question
+    currentIndex === 0 ? "Let's begin with our first question." : null,
+    
+    // Middle questions
+    currentIndex > 0 && currentIndex < totalQuestions - 1 ? [
+      "Great! Now for the next question.",
+      "Excellent. Let's continue.",
+      "Thank you. Here's your next question.",
+      "Perfect. Moving on to the next one.",
+      "Good. Let me ask you this."
+    ][Math.floor(Math.random() * 5)] : null,
+    
+    // Last question
+    currentIndex === totalQuestions - 1 ? "Finally, here's our last question." : null
+  ].filter(Boolean)[0];
+  
+  return intros || "Here's your question.";
+}
+
+// AI Voice Control Functions
+async function replayCurrentQuestion() {
+  if (interviewState.currentQuestionIndex < interviewState.questions.length) {
+    const question = interviewState.questions[interviewState.currentQuestionIndex];
+    showToast('Replaying question...', 'info');
+    await speakQuestion(question);
+  }
+}
+
+function toggleAIVoice() {
+  const pauseBtn = document.getElementById('pauseVoiceBtn');
+  
+  if (interviewState.aiVoice.isSpeaking && !interviewState.aiVoice.isPaused) {
+    // Pause the voice
+    pauseAIVoice();
+    if (pauseBtn) {
+      pauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+      pauseBtn.title = 'Resume AI Voice';
+    }
+  } else if (interviewState.aiVoice.isPaused) {
+    // Resume the voice
+    resumeAIVoice();
+    if (pauseBtn) {
+      pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+      pauseBtn.title = 'Pause AI Voice';
+    }
+  }
 }
 
 function toggleAnswering() {
@@ -438,6 +750,9 @@ function toggleAnswering() {
     interviewState.isRecording = true;
     interviewState.answerStartTime = Date.now();
     
+    // Stop any AI voice first
+    stopAIVoice();
+    
     if (answerBtn) {
       answerBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Answering';
       answerBtn.classList.remove('btn-primary');
@@ -446,7 +761,7 @@ function toggleAnswering() {
     
     // Show recording indicator
     document.getElementById('recordingIndicator')?.classList.add('recording');
-    document.getElementById('aiStatus').textContent = 'Recording your answer...';
+    document.getElementById('aiStatus').textContent = '🎧 Listening to your answer...';
     
     showToast('Recording started', 'info');
   } else {
@@ -471,9 +786,37 @@ function toggleAnswering() {
     
     // Hide recording indicator
     document.getElementById('recordingIndicator')?.classList.remove('recording');
-    document.getElementById('aiStatus').textContent = 'Listening...';
+    
+    // AI acknowledgment
+    speakAcknowledgment();
     
     showToast('Answer recorded', 'success');
+  }
+}
+
+async function speakAcknowledgment() {
+  try {
+    const acknowledgments = [
+      "Thank you for your response.",
+      "Got it, thank you.",
+      "Thank you for sharing that.",
+      "I appreciate your answer.",
+      "Thank you for your detailed response."
+    ];
+    
+    const randomAck = acknowledgments[Math.floor(Math.random() * acknowledgments.length)];
+    
+    // Brief pause before acknowledgment
+    setTimeout(async () => {
+      await speakText(randomAck, {
+        rate: 1.0,
+        pitch: 1.1,
+        volume: 0.7
+      });
+    }, 500);
+    
+  } catch (error) {
+    console.error('Error speaking acknowledgment:', error);
   }
 }
 
@@ -482,6 +825,9 @@ function skipQuestion() {
     toggleAnswering();
   }
   
+  // Stop any AI voice
+  stopAIVoice();
+  
   interviewState.answers.push({
     questionId: interviewState.questions[interviewState.currentQuestionIndex].id,
     question: interviewState.questions[interviewState.currentQuestionIndex].text,
@@ -489,7 +835,34 @@ function skipQuestion() {
     timestamp: new Date().toISOString()
   });
   
+  // AI response to skip
+  speakSkipResponse();
+  
   nextQuestion();
+}
+
+async function speakSkipResponse() {
+  try {
+    const skipResponses = [
+      "No problem, let's move on to the next question.",
+      "That's okay, let's continue.",
+      "Alright, moving to the next question.",
+      "No worries, let's proceed."
+    ];
+    
+    const randomResponse = skipResponses[Math.floor(Math.random() * skipResponses.length)];
+    
+    setTimeout(async () => {
+      await speakText(randomResponse, {
+        rate: 1.0,
+        pitch: 1.0,
+        volume: 0.7
+      });
+    }, 300);
+    
+  } catch (error) {
+    console.error('Error speaking skip response:', error);
+  }
 }
 
 function nextQuestion() {
@@ -504,12 +877,14 @@ function nextQuestion() {
 // ===== END INTERVIEW =====
 function pauseInterview() {
   stopTimer();
+  stopAIVoice(); // Stop any ongoing AI speech
   showToast('Interview paused', 'warning');
   // In production, implement pause functionality
 }
 
 async function endInterview() {
   stopTimer();
+  stopAIVoice(); // Stop any ongoing AI speech
   
   // Stop camera and mic
   if (interviewState.cameraStream) {
@@ -518,6 +893,9 @@ async function endInterview() {
   if (interviewState.micStream) {
     interviewState.micStream.getTracks().forEach(track => track.stop());
   }
+  
+  // AI closing message
+  await speakClosingMessage();
   
   // Calculate results
   showToast('Analyzing your performance...', 'info');
@@ -532,6 +910,21 @@ async function endInterview() {
   }
   
   switchScreen('results');
+}
+
+async function speakClosingMessage() {
+  try {
+    const closingText = "Thank you for completing the interview! I'm now analyzing your responses and will provide you with detailed feedback shortly.";
+    
+    updateAIVoiceUI(true);
+    await speakText(closingText, {
+      rate: 0.9,
+      pitch: 1.1
+    });
+    
+  } catch (error) {
+    console.error('Error speaking closing message:', error);
+  }
 }
 
 async function submitInterview() {
