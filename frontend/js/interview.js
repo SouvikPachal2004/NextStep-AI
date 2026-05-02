@@ -349,16 +349,24 @@ async function toggleCamera() {
     }
     interviewState.cameraEnabled = false;
     
-    const preview = document.getElementById('cameraPreview') || document.getElementById('userVideo');
-    const overlay = document.getElementById('cameraOverlay');
-    if (preview) {
-      preview.srcObject = null;
-      preview.style.display = 'none';
+    // Clear both video elements
+    const cameraPreview = document.getElementById('cameraPreview');
+    const userVideo = document.getElementById('userVideo');
+    
+    if (cameraPreview) {
+      cameraPreview.srcObject = null;
+      cameraPreview.style.display = 'none';
     }
-    if (overlay) {
+    if (userVideo) {
+      userVideo.srcObject = null;
+      userVideo.style.display = 'none';
+    }
+    
+    // Show overlay on both
+    document.querySelectorAll('#cameraOverlay').forEach(overlay => {
       overlay.style.display = 'flex';
       overlay.classList.remove('hidden');
-    }
+    });
     
     document.querySelectorAll('#toggleCamera, #toggleCameraInterview').forEach(btn => {
       btn.classList.remove('active');
@@ -388,21 +396,23 @@ async function toggleCamera() {
       console.log('Camera stream obtained:', stream);
       console.log('Video tracks:', stream.getVideoTracks());
       
-      const preview = document.getElementById('cameraPreview') || document.getElementById('userVideo');
-      const overlay = document.getElementById('cameraOverlay');
+      // Attach to the appropriate video element based on current screen
+      const currentScreen = interviewState.currentScreen || 'setup';
+      const videoElementId = currentScreen === 'interview' ? 'userVideo' : 'cameraPreview';
+      const videoEl = document.getElementById(videoElementId);
       
-      if (preview) {
+      if (videoEl) {
         // Clear any existing source
-        preview.srcObject = null;
+        videoEl.srcObject = null;
         
         // Set new stream
-        preview.srcObject = stream;
-        preview.style.display = 'block';
+        videoEl.srcObject = stream;
+        videoEl.style.display = 'block';
         
         // Ensure video plays and handle loading
-        preview.onloadedmetadata = () => {
+        videoEl.onloadedmetadata = () => {
           console.log('Video metadata loaded, attempting to play');
-          preview.play().then(() => {
+          videoEl.play().then(() => {
             console.log('Video playing successfully');
           }).catch(e => {
             console.error('Video play error:', e);
@@ -411,24 +421,25 @@ async function toggleCamera() {
         };
         
         // Handle video errors
-        preview.onerror = (e) => {
+        videoEl.onerror = (e) => {
           console.error('Video element error:', e);
           showToast('Video display error', 'error');
         };
         
         // Force load if metadata doesn't trigger
         setTimeout(() => {
-          if (preview.readyState === 0) {
+          if (videoEl.readyState === 0) {
             console.log('Forcing video load');
-            preview.load();
+            videoEl.load();
           }
         }, 1000);
       }
       
-      if (overlay) {
+      // Hide overlay on both
+      document.querySelectorAll('#cameraOverlay').forEach(overlay => {
         overlay.style.display = 'none';
         overlay.classList.add('hidden');
-      }
+      });
       
       document.querySelectorAll('#toggleCamera, #toggleCameraInterview').forEach(btn => {
         btn.classList.add('active');
@@ -458,11 +469,14 @@ async function toggleCamera() {
           interviewState.cameraStream = basicStream;
           interviewState.cameraEnabled = true;
           
-          const preview = document.getElementById('cameraPreview') || document.getElementById('userVideo');
-          if (preview) {
-            preview.srcObject = basicStream;
-            preview.style.display = 'block';
-            preview.play().catch(e => console.error('Basic video play error:', e));
+          const currentScreen = interviewState.currentScreen || 'setup';
+          const videoElementId = currentScreen === 'interview' ? 'userVideo' : 'cameraPreview';
+          const videoEl = document.getElementById(videoElementId);
+          
+          if (videoEl) {
+            videoEl.srcObject = basicStream;
+            videoEl.style.display = 'block';
+            videoEl.play().catch(e => console.error('Basic video play error:', e));
           }
           
           showToast('Camera enabled with basic settings', 'success');
@@ -714,6 +728,23 @@ async function startInterview() {
   
   // Switch to interview screen
   switchScreen('interview');
+  
+  // Attach camera stream to interview video element
+  if (interviewState.cameraStream) {
+    const userVideoEl = document.getElementById('userVideo');
+    if (userVideoEl) {
+      userVideoEl.srcObject = interviewState.cameraStream;
+      userVideoEl.style.display = 'block';
+      
+      // Ensure video plays
+      userVideoEl.play().catch(e => {
+        console.error('Error playing interview video:', e);
+        showToast('Error starting video playback', 'error');
+      });
+      
+      console.log('Camera stream attached to interview video element');
+    }
+  }
   
   // Start timer
   interviewState.startTime = Date.now();
