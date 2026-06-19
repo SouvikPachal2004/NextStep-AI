@@ -93,10 +93,7 @@ function renderUserAssessments(assessments) {
 // ===== START ASSESSMENT =====
 async function startAssessment(assessmentId) {
   try {
-    const token = getAuthToken();
-    const res = await fetch(`${API_URL}/assessments/${assessmentId}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    const res = await authFetch(`${API_URL}/assessments/${assessmentId}`);
 
     if (!res.ok) {
       throw new Error('Failed to load assessment');
@@ -360,13 +357,8 @@ async function submitQuiz() {
     });
 
     // Submit to API
-    const token = getAuthToken();
-    const res = await fetch(`${API_URL}/assessments/${currentQuiz._id}/attempt`, {
+    const res = await authFetch(`${API_URL}/assessments/${currentQuiz._id}/attempt`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
       body: JSON.stringify({ answers, timeTaken })
     });
 

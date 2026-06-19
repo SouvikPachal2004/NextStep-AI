@@ -104,10 +104,7 @@ async function loadAndRenderAssessments() {
     </div>`;
 
   try {
-    const token = getAuthToken();
-    const res = await fetch(`${API_URL}/assessments`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    const res = await authFetch(`${API_URL}/assessments`);
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
@@ -327,10 +324,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // ===== DATA LOADING =====
 async function loadUserDashboardData() {
   try {
-    const token = getAuthToken();
-    const headers = { 'Authorization': `Bearer ${token}` };
-
-    const enrollmentsRes = await fetch(`${API_URL}/enrollments`, { headers });
+    const enrollmentsRes = await authFetch(`${API_URL}/enrollments`);
     if (enrollmentsRes.ok) {
       const d = await enrollmentsRes.json();
       window.userEnrollments = d.data || [];
@@ -357,7 +351,7 @@ async function loadUserDashboardData() {
       }
     }
 
-    const certsRes = await fetch(`${API_URL}/certificates`, { headers });
+    const certsRes = await authFetch(`${API_URL}/certificates`);
     if (certsRes.ok) {
       const d = await certsRes.json();
       window.userCertificates = d.data || [];
@@ -383,7 +377,7 @@ async function loadUserDashboardData() {
       renderJobBoard(window.availableJobs);
     }
 
-    const assessmentsRes = await fetch(`${API_URL}/assessments`, { headers });
+    const assessmentsRes = await authFetch(`${API_URL}/assessments`);
     if (assessmentsRes.ok) {
       const d = await assessmentsRes.json();
       window.userAssessments = d.data || [];
@@ -687,16 +681,14 @@ function renderAvailableCourses() {
 async function requestEnrollment(courseId, btn) {
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Requesting...'; }
   try {
-    const token = getAuthToken();
-    const res = await fetch(`${API_URL}/enrollments`, {
+    const res = await authFetch(`${API_URL}/enrollments`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ courseId })
     });
     const data = await res.json();
     if (res.ok && data.success) {
       showToast('Enrollment request sent! Waiting for admin approval.', 'success');
-      const r = await fetch(`${API_URL}/enrollments`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const r = await authFetch(`${API_URL}/enrollments`);
       if (r.ok) {
         const d = await r.json();
         window.userEnrollments = d.data || [];
@@ -1215,10 +1207,8 @@ function renderProfileSettings() {
     const bio    = document.getElementById('profileBio').value;
     const skills = document.getElementById('profileSkills').value.split(',').map(s => s.trim()).filter(Boolean);
     try {
-      const token = getAuthToken();
-      const res = await fetch(`${API_URL}/auth/updatedetails`, {
+      const res = await authFetch(`${API_URL}/auth/updatedetails`, {
         method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, bio, skills })
       });
       if (res.ok) {
@@ -1237,10 +1227,8 @@ function renderProfileSettings() {
     const confirmPass = document.getElementById('confirmPassword').value;
     if (newPass !== confirmPass) { showToast('Passwords do not match!', 'error'); return; }
     try {
-      const token = getAuthToken();
-      const res = await fetch(`${API_URL}/auth/updatepassword`, {
+      const res = await authFetch(`${API_URL}/auth/updatepassword`, {
         method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ currentPassword: document.getElementById('currentPassword').value, newPassword: newPass })
       });
       if (res.ok) { showToast('Password updated successfully!', 'success'); }
@@ -1307,9 +1295,8 @@ async function handleResumeUpload(event) {
     const formData = new FormData();
     formData.append('resume', file);
     
-    const res = await fetch(`${API_URL}/resume/analyze`, {
+    const res = await authFetch(`${API_URL}/resume/analyze`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${getAuthToken()}` },
       body: formData
     });
     
@@ -1779,9 +1766,7 @@ async function loadInterviewHistory() {
 
   try {
     const token = getAuthToken();
-    const response = await fetch(`${API_URL}/interview/history`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    const response = await authFetch(`${API_URL}/interview/history`);
 
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
 

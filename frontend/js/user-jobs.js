@@ -4,13 +4,11 @@ function renderAllJobs() {
   const container = document.getElementById('allJobsContainer');
   if (!container) return;
 
-  // Fetch fresh applications first so accepted status + link are current
-  const token = getAuthToken();
-  fetch(`${API_URL}/jobs/my/applications`, { headers: { 'Authorization': `Bearer ${token}` } })
+  authFetch(`${API_URL}/jobs/my/applications`)
     .then(r => r.ok ? r.json() : { data: [] })
     .then(appsData => {
       window.userApplications = appsData.data || [];
-      return fetch(`${API_URL}/jobs`, { headers: { 'Authorization': `Bearer ${token}` } });
+      return authFetch(`${API_URL}/jobs`);
     })
     .then(r => r.json())
     .then(data => {
@@ -80,19 +78,14 @@ async function renderAppliedJobs() {
   const container = document.getElementById('appliedJobsContainer');
   if (!container) return;
 
-  // Always show loading first
   container.innerHTML = `
     <div style="text-align:center;padding:3rem;">
       <i class="fas fa-spinner fa-spin" style="font-size:2rem;color:var(--primary);margin-bottom:1rem;display:block;"></i>
       <p style="color:var(--text-secondary);">Loading your applications...</p>
     </div>`;
 
-  // Always fetch fresh data so the link appears immediately after admin accepts
   try {
-    const token = getAuthToken();
-    const res = await fetch(`${API_URL}/jobs/my/applications`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    const res = await authFetch(`${API_URL}/jobs/my/applications`);
     if (res.ok) {
       const data = await res.json();
       window.userApplications = data.data || [];
@@ -128,8 +121,6 @@ async function renderAppliedJobs() {
 
     return `
       <div style="background:var(--bg-card);border:1px solid ${isAccepted?'rgba(16,185,129,0.4)':isRejected?'rgba(239,68,68,0.3)':'var(--border)'};border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1rem;transition:all 0.25s ease;${isAccepted?'box-shadow:0 4px 20px rgba(16,185,129,0.12);':''}">
-
-        <!-- Job Info Row -->
         <div style="display:flex;justify-content:space-between;align-items:start;gap:1rem;margin-bottom:${isAccepted||isRejected||app.status==='shortlisted'||app.status==='pending'?'1rem':'0'};">
           <div style="flex:1;min-width:0;">
             <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.4rem;">
@@ -156,11 +147,10 @@ async function renderAppliedJobs() {
           </div>
         </div>
 
-        <!-- ACCEPTED WITH LINK -->
         ${hasLink ? `
           <div style="background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(5,150,105,0.06));border:2px solid rgba(16,185,129,0.5);border-radius:var(--radius-md);padding:1.25rem;margin-top:0.5rem;">
             <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
-              <div style="width:40px;height:40px;background:linear-gradient(135deg,#10B981,#059669);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(16,185,129,0.3);">
+              <div style="width:40px;height:40px;background:linear-gradient(135deg,#10B981,#059669);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                 <i class="fas fa-check" style="color:#fff;font-size:1rem;"></i>
               </div>
               <div>
@@ -169,18 +159,11 @@ async function renderAppliedJobs() {
               </div>
             </div>
             <a href="${app.applicationLink}" target="_blank" rel="noopener noreferrer"
-               style="display:inline-flex;align-items:center;gap:0.6rem;background:linear-gradient(135deg,#10B981,#059669);color:#fff;padding:0.7rem 1.5rem;border-radius:var(--radius-md);font-weight:700;font-size:0.9rem;text-decoration:none;box-shadow:0 4px 12px rgba(16,185,129,0.3);transition:all 0.2s;"
-               onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 16px rgba(16,185,129,0.4)'"
-               onmouseout="this.style.transform='';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.3)'">
+               style="display:inline-flex;align-items:center;gap:0.6rem;background:linear-gradient(135deg,#10B981,#059669);color:#fff;padding:0.7rem 1.5rem;border-radius:var(--radius-md);font-weight:700;font-size:0.9rem;text-decoration:none;">
               <i class="fas fa-external-link-alt"></i> Open Application Link
             </a>
-            <div style="margin-top:0.75rem;padding:0.5rem 0.75rem;background:rgba(0,0,0,0.04);border-radius:8px;font-size:0.75rem;color:var(--text-muted);word-break:break-all;display:flex;align-items:center;gap:0.4rem;">
-              <i class="fas fa-link" style="color:var(--success);flex-shrink:0;"></i>
-              <span>${app.applicationLink}</span>
-            </div>
           </div>` : ''}
 
-        <!-- ACCEPTED WITHOUT LINK -->
         ${isAccepted && !hasLink ? `
           <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:var(--radius-md);padding:1rem;margin-top:0.5rem;display:flex;align-items:center;gap:0.75rem;">
             <i class="fas fa-check-circle" style="color:var(--success);font-size:1.25rem;flex-shrink:0;"></i>
@@ -190,28 +173,24 @@ async function renderAppliedJobs() {
             </div>
           </div>` : ''}
 
-        <!-- REJECTED -->
         ${isRejected ? `
           <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:var(--radius-md);padding:0.875rem 1rem;margin-top:0.5rem;display:flex;align-items:center;gap:0.75rem;">
             <i class="fas fa-times-circle" style="color:var(--danger);font-size:1.1rem;flex-shrink:0;"></i>
             <div style="font-size:0.82rem;color:var(--danger);font-weight:600;">This application was not selected. Keep applying to other opportunities!</div>
           </div>` : ''}
 
-        <!-- SHORTLISTED -->
         ${app.status === 'shortlisted' ? `
           <div style="background:rgba(59,130,246,0.07);border:1px solid rgba(59,130,246,0.25);border-radius:var(--radius-md);padding:0.875rem 1rem;margin-top:0.5rem;display:flex;align-items:center;gap:0.75rem;">
             <i class="fas fa-star" style="color:#3B82F6;font-size:1.1rem;flex-shrink:0;"></i>
             <div style="font-size:0.82rem;color:#3B82F6;font-weight:600;">You've been shortlisted! The admin will review your profile and update you soon.</div>
           </div>` : ''}
 
-        <!-- PENDING -->
         ${app.status === 'pending' ? `
           <div style="background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.25);border-radius:var(--radius-md);padding:0.875rem 1rem;margin-top:0.5rem;display:flex;align-items:center;gap:0.75rem;">
             <i class="fas fa-clock" style="color:#D97706;font-size:1.1rem;flex-shrink:0;"></i>
             <div style="font-size:0.82rem;color:#D97706;font-weight:600;">Your application is under review. We'll notify you when there's an update.</div>
           </div>` : ''}
 
-        <!-- REVIEWED -->
         ${app.status === 'reviewed' ? `
           <div style="background:rgba(107,114,128,0.07);border:1px solid rgba(107,114,128,0.2);border-radius:var(--radius-md);padding:0.875rem 1rem;margin-top:0.5rem;display:flex;align-items:center;gap:0.75rem;">
             <i class="fas fa-eye" style="color:var(--text-secondary);font-size:1.1rem;flex-shrink:0;"></i>
@@ -224,15 +203,14 @@ async function renderAppliedJobs() {
 async function applyToJob(jobId, btn) {
   if (btn) { btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Applying...'; }
   try {
-    const token = getAuthToken();
-    const res = await fetch(`${API_URL}/jobs/${jobId}/apply`, {
+    const res = await authFetch(`${API_URL}/jobs/${jobId}/apply`, {
       method: 'POST',
-      headers: {'Authorization':`Bearer ${token}`,'Content-Type':'application/json'}
+      body: JSON.stringify({})
     });
     const data = await res.json();
     if (res.ok) {
       showToast('Application submitted successfully! 🎉', 'success');
-      const appsRes = await fetch(`${API_URL}/jobs/my/applications`, { headers: {'Authorization':`Bearer ${token}`} });
+      const appsRes = await authFetch(`${API_URL}/jobs/my/applications`);
       if (appsRes.ok) {
         const appsData = await appsRes.json();
         window.userApplications = appsData.data || [];
@@ -251,8 +229,7 @@ async function applyToJob(jobId, btn) {
 
 async function loadUserApplications() {
   try {
-    const token = getAuthToken();
-    const res = await fetch(`${API_URL}/jobs/my/applications`, { headers: {'Authorization':`Bearer ${token}`} });
+    const res = await authFetch(`${API_URL}/jobs/my/applications`);
     if (res.ok) {
       const data = await res.json();
       window.userApplications = data.data || [];

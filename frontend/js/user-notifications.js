@@ -14,10 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── Load notifications from API ──
 async function loadNotifications() {
   try {
-    const token = getAuthToken();
-    const res = await fetch(`${API_URL}/notifications`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    const res = await authFetch(`${API_URL}/notifications`);
     if (!res.ok) return;
     const data = await res.json();
     window.userNotifications = data.data || [];
@@ -168,10 +165,7 @@ function renderNotifDropdown(notifications) {
 async function handleNotifClick(notifId, type, data) {
   // Mark as read
   try {
-    await fetch(`${API_URL}/notifications/${notifId}/read`, {
-      method: 'PUT',
-      headers: { 'Authorization': `Bearer ${getAuthToken()}` }
-    });
+    await authFetch(`${API_URL}/notifications/${notifId}/read`, { method: 'PUT' });
   } catch (e) {}
 
   // Navigate based on type
@@ -180,12 +174,11 @@ async function handleNotifClick(notifId, type, data) {
     const certLink = document.querySelector('[data-page="certificates"]');
     if (certLink) certLink.click();
     setTimeout(() => {
-      fetch(`${API_URL}/certificates`, {
-        headers: { 'Authorization': `Bearer ${getAuthToken()}` }
-      }).then(r => r.json()).then(d => {
-        window.userCertificates = d.data || [];
-        if (typeof renderUserCertificates === 'function') renderUserCertificates(window.userCertificates);
-      });
+      authFetch(`${API_URL}/certificates`)
+        .then(r => r.json()).then(d => {
+          window.userCertificates = d.data || [];
+          if (typeof renderUserCertificates === 'function') renderUserCertificates(window.userCertificates);
+        });
     }, 300);
   } else if (type === 'enrollment_approved' || type === 'enrollment_rejected') {
     document.getElementById('notifDropdown').style.display = 'none';
@@ -207,10 +200,7 @@ async function handleNotifClick(notifId, type, data) {
 // ── Mark all read ──
 async function markAllRead() {
   try {
-    await fetch(`${API_URL}/notifications/read-all`, {
-      method: 'PUT',
-      headers: { 'Authorization': `Bearer ${getAuthToken()}` }
-    });
+    await authFetch(`${API_URL}/notifications/read-all`, { method: 'PUT' });
     loadNotifications();
   } catch (e) {}
 }
@@ -227,32 +217,24 @@ function timeAgo(dateStr) {
   return `${days}d ago`;
 }
 
-// ── Certificate Request ──
 async function requestCertificate(courseId, courseName, btn) {
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Requesting...'; }
 
   try {
-    const token = getAuthToken();
-    const res = await fetch(`${API_URL}/certificates/request`, {
+    const res = await authFetch(`${API_URL}/certificates/request`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ courseId })
     });
-
     const data = await res.json();
 
     if (res.ok) {
       showToast(data.message || 'Certificate request submitted!', 'success');
-      // Reload enrolled courses to update button state
-      const r = await fetch(`${API_URL}/enrollments`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const r = await authFetch(`${API_URL}/enrollments`);
       if (r.ok) {
         const d = await r.json();
         window.userEnrollments = d.data || [];
         if (typeof renderEnrolledCourses === 'function') renderEnrolledCourses();
       }
-      // Reload cert requests
       await loadCertRequests();
     } else {
       showToast(data.message || 'Failed to submit request', 'error');
@@ -265,13 +247,10 @@ async function requestCertificate(courseId, courseName, btn) {
   }
 }
 
-// ── Load user's cert requests (to show pending status) ──
+// ── Load user's cert requests ──
 async function loadCertRequests() {
   try {
-    const token = getAuthToken();
-    const res = await fetch(`${API_URL}/certificates/requests`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    const res = await authFetch(`${API_URL}/certificates/requests`);
     if (res.ok) {
       const data = await res.json();
       window.userCertRequests = data.data || [];
@@ -279,26 +258,21 @@ async function loadCertRequests() {
   } catch (e) {}
 }
 
-// ── Mark course as complete (sets progress to 100%) ──
+// ── Mark course as complete ──
 async function markCourseComplete(enrollmentId, courseId, courseName, btn) {
   if (!confirm(`Mark "${courseName}" as complete? This will set your progress to 100%.`)) return;
 
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...'; }
 
   try {
-    const token = getAuthToken();
-    const res = await fetch(`${API_URL}/enrollments/${enrollmentId}`, {
+    const res = await authFetch(`${API_URL}/enrollments/${enrollmentId}`, {
       method: 'PUT',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ progress: 100, status: 'completed' })
     });
 
     if (res.ok) {
       showToast('Course marked as complete! You can now request your certificate.', 'success');
-      // Reload enrollments
-      const r = await fetch(`${API_URL}/enrollments`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const r = await authFetch(`${API_URL}/enrollments`);
       if (r.ok) {
         const d = await r.json();
         window.userEnrollments = d.data || [];

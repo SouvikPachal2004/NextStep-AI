@@ -70,6 +70,24 @@ function setUserData(user) {
   localStorage.setItem('nextstep-user', JSON.stringify(user));
 }
 
+// ── Centralised 401 handler ──────────────────────────────────────────────────
+// Called whenever any fetch response comes back with HTTP 401.
+// Clears local auth state, shows a toast if possible, then sends the user
+// to the login page after a short delay so they can read the message.
+function handleUnauthorized() {
+  removeAuthToken();          // wipe token + user data
+
+  // Try to show a toast (the function is defined in dashboard JS files)
+  if (typeof showToast === 'function') {
+    showToast('Session expired. Please log in again.', 'error');
+  }
+
+  // Redirect after a brief pause so the toast is visible
+  setTimeout(() => {
+    window.location.href = 'login.html';
+  }, 1500);
+}
+
 // Helper function to make authenticated API calls
 async function apiCall(endpoint, options = {}) {
   const token = getAuthToken();
@@ -94,6 +112,12 @@ async function apiCall(endpoint, options = {}) {
     const response = await fetch(endpoint, mergedOptions);
     const data = await response.json();
     
+    // Handle expired / invalid token globally
+    if (response.status === 401) {
+      handleUnauthorized();
+      throw new Error('Session expired. Please log in again.');
+    }
+    
     if (!response.ok) {
       throw new Error(data.message || 'API request failed');
     }
@@ -103,6 +127,37 @@ async function apiCall(endpoint, options = {}) {
     console.error('API call error:', error);
     throw error;
   }
+}
+
+// ── authFetch: drop-in fetch wrapper that handles 401 automatically ──────────
+async function authFetch(url, options = {}) {
+  const token = getAuthToken();
+
+  // Don't set Content-Type for FormData — browser sets it with boundary
+  const isFormData = options.body instanceof FormData;
+
+  const merged = {
+    ...options,
+    headers: {
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      ...(options.headers || {})
+    }
+  };
+
+  // Remove Content-Type if explicitly set to undefined (lets browser handle it)
+  if (merged.headers['Content-Type'] === undefined) {
+    delete merged.headers['Content-Type'];
+  }
+
+  const response = await fetch(url, merged);
+
+  if (response.status === 401) {
+    handleUnauthorized();
+    throw new Error('Session expired. Please log in again.');
+  }
+
+  return response;
 }
 
 // Check if user is authenticated
